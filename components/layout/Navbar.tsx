@@ -51,18 +51,18 @@ export function Navbar() {
 
     return (
         <header className="sticky top-0 z-[1000] w-full border-b border-border bg-surface/80 backdrop-blur-md">
-            <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-                <div className="flex items-center gap-4">
+            <div className="container mx-auto flex h-16 items-center justify-between px-2 sm:px-4 lg:px-8">
+                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                     <button
-                        className="rounded-xl p-2.5 hover:bg-background transition-all bg-primary/5 text-primary shadow-inner border border-primary/10"
+                        className="rounded-xl p-2 sm:p-2.5 hover:bg-background transition-all bg-primary/5 text-primary shadow-inner border border-primary/10"
                         onClick={() => setIsMenuOpen(true)}
                     >
                         <Menu size={22} className="stroke-[2.5px]" />
                     </button>
 
-                    <Link href="/" className="flex items-center gap-2">
-                        <img src="/logo.png" alt="KASH Logo" className="h-9 w-9 object-contain" />
-                        <span className="text-2xl font-black italic tracking-tighter text-primary">KASH</span>
+                    <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+                        <img src="/logo.png" alt="KASH Logo" className="h-7 w-7 sm:h-9 sm:w-9 object-contain" />
+                        <span className="text-xl sm:text-2xl font-black italic tracking-tighter text-primary">KASH</span>
                     </Link>
 
                     <nav className="hidden xl:flex items-center gap-6 ml-4">
@@ -75,7 +75,7 @@ export function Navbar() {
                     </nav>
                 </div>
 
-                <div className="flex items-center gap-1 md:gap-3">
+                <div className="flex items-center sm:gap-1 md:gap-3 shrink-0">
                     <form onSubmit={handleSearch} className="relative hidden lg:block">
                         <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
                         <input
@@ -89,21 +89,21 @@ export function Navbar() {
 
                     <button
                         onClick={toggleTheme}
-                        className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary"
+                        className="hidden sm:flex rounded-xl h-11 w-11 items-center justify-center hover:bg-background transition-all text-text-secondary"
                     >
                         {mode === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
 
-                    <Link href="/profile/notifications" className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
+                    <Link href="/profile/notifications" className="rounded-xl h-10 w-10 sm:h-11 sm:w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
                         <Bell size={18} />
                         {notificationData?.count > 0 && (
-                            <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
+                            <span className="absolute top-1 sm:top-2 right-1 sm:right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
                                 {notificationData.count}
                             </span>
                         )}
                     </Link>
 
-                    <Link href="/messages" className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
+                    <Link href="/messages" className="hidden sm:flex rounded-xl h-11 w-11 items-center justify-center hover:bg-background transition-all text-text-secondary relative">
                         <MessageSquare size={18} />
                         {(messageUnreadData?.totalUnread || 0) > 0 && (
                             <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
@@ -112,10 +112,10 @@ export function Navbar() {
                         )}
                     </Link>
 
-                    <Link href="/cart" className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
+                    <Link href="/cart" className="rounded-xl h-10 w-10 sm:h-11 sm:w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
                         <ShoppingCart size={18} />
                         {cartCount > 0 && (
-                            <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
+                            <span className="absolute top-1 sm:top-2 right-1 sm:right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
                                 {cartCount}
                             </span>
                         )}

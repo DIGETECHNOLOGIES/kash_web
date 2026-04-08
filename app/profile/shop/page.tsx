@@ -8,11 +8,14 @@ import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { shopApi } from '@/services/api/shopApi';
+import { productApi } from '@/services/api/productApi';
+import { orderApi } from '@/services/api/orderApi';
 import { useAuthStore } from '@/store/authStore';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
+import { ProductCard } from '@/components/common/ProductCard';
 import {
     Store,
     ChevronLeft,
@@ -30,6 +33,7 @@ import {
     MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 const shopSchema = yup.object().shape({
     name: yup.string().required('Shop name is required'),
@@ -63,6 +67,35 @@ export default function ShopManagePage() {
         resolver: yupResolver(shopSchema),
     });
 
+    const { data: userShop } = useQuery({
+        queryKey: ['user-shop'],
+        queryFn: () => shopApi.userShop(),
+    });
+
+    const { data: shopProducts = [] } = useQuery({
+        queryKey: ['products', 'shop', userShop?.id],
+        queryFn: async () => {
+            const productsRes = await productApi.listProducts({ shop: Number(userShop?.id) });
+            return productsRes.results || [];
+        },
+        enabled: !!userShop?.id,
+    });
+
+    const { data: shopOrders = [] } = useQuery({
+        queryKey: ['orders', 'seller'],
+        queryFn: async () => {
+            const ordersRes = await orderApi.getSellerOrders();
+            return ordersRes.results || [];
+        },
+        enabled: !!userShop?.id,
+    });
+
+    const { data: shopAnalytics } = useQuery({
+        queryKey: ['shop-analytics'],
+        queryFn: () => shopApi.getShopAnalytics('all'),
+        enabled: !!userShop?.id,
+    });
+
     const createMutation = useMutation({
         mutationFn: (data: any) => shopApi.createShop(data),
         onSuccess: () => {
@@ -70,6 +103,28 @@ export default function ShopManagePage() {
             setIsRegistering(false);
         },
     });
+
+    const deleteProductMutation = useMutation({
+        mutationFn: (productId: string | number) => productApi.deleteProduct(productId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products', 'shop', userShop?.id] });
+            toast.success(t('shop.productDeleted') || 'Product deleted successfully');
+        },
+        onError: () => {
+            toast.error(t('common.error') || 'Failed to delete product');
+        }
+    });
+
+    const handleEditProduct = (product: any) => {
+        router.push(`/profile/shop/edit-product/${product.id}`);
+    };
+
+    const handleDeleteProduct = (product: any) => {
+        if (window.confirm("Are you sure you want to delete this product?")) {
+            deleteProductMutation.mutate(product.id);
+        }
+    };
+
 
     const handleFileChange = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -239,10 +294,10 @@ export default function ShopManagePage() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                     {[
-                        { label: 'Total Revenue', value: '1,250,000 F', icon: BarChart3, color: 'text-success', bg: 'bg-success/10' },
-                        { label: 'Active Orders', value: '24', icon: Package, color: 'text-info', bg: 'bg-info/10' },
-                        { label: 'Total Products', value: '48', icon: Store, color: 'text-primary', bg: 'bg-primary/10' },
-                        { label: 'Customer Rating', value: '4.9', icon: CheckCircle2, color: 'text-warning', bg: 'bg-warning/10' },
+                        { label: 'Total Revenue', value: `${Number(shopAnalytics?.all_time_revenue || userShop?.revenue || 0).toLocaleString()} F`, icon: BarChart3, color: 'text-success', bg: 'bg-success/10' },
+                        { label: 'Active Orders', value: shopOrders.length, icon: Package, color: 'text-info', bg: 'bg-info/10' },
+                        { label: 'Total Products', value: userShop?.totalProducts || shopProducts.length, icon: Store, color: 'text-primary', bg: 'bg-primary/10' },
+                        { label: 'Customer Rating', value: userShop?.average_rating?.toFixed(1) || '0.0', icon: CheckCircle2, color: 'text-warning', bg: 'bg-warning/10' },
                     ].map((stat, i) => (
                         <Card key={i} className="p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center text-center group hover:shadow-xl transition-all duration-500 border-none">
                             <div className={`h-16 w-16 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-6 shadow-inner ring-1 ring-white/20 transition-transform group-hover:scale-110`}>
@@ -263,27 +318,34 @@ export default function ShopManagePage() {
                         </div>
 
                         <div className="space-y-4">
-                            {[...Array(3)].map((_, i) => (
-                                <Card key={i} className="p-6 rounded-[2rem] border-border/40 shadow-sm hover:border-primary/30 transition-all group cursor-pointer hover:shadow-lg">
-                                    <div className="flex items-center gap-6">
-                                        <div className="h-14 w-14 rounded-2xl bg-background flex items-center justify-center text-text-secondary border border-border/60">
-                                            <Package size={24} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-sm uppercase tracking-tight italic">Order #7742{i}</h4>
-                                                <Badge variant="info" className="text-[8px] italic font-black">NEW SHIPMENT</Badge>
+                            {shopOrders.length > 0 ? (
+                                shopOrders.slice(0, 5).map((order) => (
+                                    <Card key={order.id} className="p-6 rounded-[2rem] border-border/40 shadow-sm hover:border-primary/30 transition-all group cursor-pointer hover:shadow-lg">
+                                        <div className="flex items-center gap-6">
+                                            <div className="h-14 w-14 rounded-2xl bg-background flex items-center justify-center text-text-secondary border border-border/60">
+                                                <Package size={24} />
                                             </div>
-                                            <div className="flex items-center gap-4 text-[10px] font-bold text-text-secondary uppercase">
-                                                <span>2 items</span>
-                                                <span className="h-1 w-1 rounded-full bg-border" />
-                                                <span className="text-primary font-black italic">45,000 FCFA</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <h4 className="font-bold text-sm uppercase tracking-tight italic">Order #{order.order_code}</h4>
+                                                    <Badge variant="info" className="text-[8px] italic font-black">{order.status}</Badge>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-[10px] font-bold text-text-secondary uppercase">
+                                                    <span>{order.quantity} item(s)</span>
+                                                    <span className="h-1 w-1 rounded-full bg-border" />
+                                                    <span className="text-primary font-black italic">{Number(order.totalAmount).toLocaleString()} FCFA</span>
+                                                </div>
                                             </div>
+                                            <Button variant="ghost" size="icon" className="rounded-xl"><MessageSquare size={18} /></Button>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="rounded-xl"><MessageSquare size={18} /></Button>
-                                    </div>
-                                </Card>
-                            ))}
+                                    </Card>
+                                ))
+                            ) : (
+                                <div className="text-center py-12 bg-background rounded-3xl border border-dashed border-border text-text-secondary">
+                                    <Package size={48} className="mx-auto mb-4 opacity-50" />
+                                    <p className="text-sm font-bold uppercase tracking-widest italic">No orders yet</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -306,6 +368,36 @@ export default function ShopManagePage() {
                         </Card>
                     </div>
                 </div>
+
+                {/* Shop Products */}
+                <section className="mt-16">
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-2xl font-black italic tracking-tighter uppercase">{t('settings.merchantCatalog')}</h2>
+                        <Badge variant="outline" className="px-4 py-1.5 rounded-xl uppercase font-black italic">{shopProducts.length} {t('home.products')}</Badge>
+                    </div>
+
+                    {shopProducts.length === 0 ? (
+                        <div className="text-center py-20 bg-background rounded-[3rem] border border-dashed border-border/60">
+                            <Store size={48} className="mx-auto mb-4 text-text-secondary opacity-50" />
+                            <p className="text-text-secondary uppercase tracking-widest font-black italic mb-4">Your store is empty.</p>
+                            <Button onClick={() => router.push('/profile/shop/add-product')} variant="outline" className="rounded-2xl border-border/60 text-text">
+                                <Plus size={18} className="mr-2" /> Add Your First Product
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            {shopProducts.map((product: any) => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    isOwnerMode={true}
+                                    onEdit={handleEditProduct}
+                                    onDelete={handleDeleteProduct}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </section>
             </div>
         </MainLayout>
     );

@@ -87,7 +87,7 @@ export default function ProfilePage() {
                                 {user?.role === 'seller' ? t('common.verifiedSeller') : t('common.verifiedBuyer')}
                             </Badge>
                             <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-white/5 px-4 py-1.5 rounded-full backdrop-blur-sm">
-                                <History size={14} /> {t('settings.joinedOn', { date: 'Jan 2024' })}
+                                <History size={14} /> {t('settings.joinedOn', { date: user?.createdAt ? new Date(user.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : 'Jan 2024' })}
                             </div>
                         </div>
                     </div>

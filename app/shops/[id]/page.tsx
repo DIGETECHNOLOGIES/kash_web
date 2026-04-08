@@ -52,6 +52,20 @@ export default function ShopDetailsPage() {
         }
     };
 
+    const handleShare = () => {
+        if (!shop) return;
+        if (navigator.share) {
+            navigator.share({
+                title: shop.name,
+                text: shop.description || t('shop.aboutUsMsg'),
+                url: `https://digetech.org/shops/${shop.id}`,
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(`https://digetech.org/shops/${shop.id}`);
+            toast.info(t('common.linkCopied') || 'Link Copied');
+        }
+    };
+
     if (isLoadingShop) {
         return (
             <MainLayout>
@@ -79,7 +93,7 @@ export default function ShopDetailsPage() {
                 <div className="h-48 md:h-64 rounded-[3rem] bg-secondary relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-secondary opacity-60" />
                     <div className="absolute top-6 right-6 flex gap-3">
-                        <Button variant="outline" className="rounded-2xl border-white/20 text-white bg-white/10 backdrop-blur-md">
+                        <Button onClick={handleShare} variant="outline" className="rounded-2xl border-white/20 text-white bg-white/10 backdrop-blur-md">
                             <Share2 size={18} className="mr-2" /> {t('common.share')}
                         </Button>
                     </div>

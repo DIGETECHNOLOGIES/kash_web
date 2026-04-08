@@ -53,6 +53,20 @@ export default function ProductDetailsPage() {
         }
     };
 
+    const handleShare = () => {
+        if (!product) return;
+        if (navigator.share) {
+            navigator.share({
+                title: product.name,
+                text: product.description,
+                url: `https://digetech.org/products/${product.id}`,
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(`https://digetech.org/products/${product.id}`);
+            toast.info(t('common.linkCopied') || 'Link Copied');
+        }
+    };
+
     const handleContactMerchant = async () => {
         if (!isAuthenticated) {
             router.push(`/login?redirect=/products/${slug}`);
@@ -123,7 +137,7 @@ export default function ProductDetailsPage() {
                         <button className="rounded-full bg-white/90 p-3 text-text-secondary shadow-lg backdrop-blur-md transition-colors hover:text-error dark:bg-black/50">
                             <Heart size={20} />
                         </button>
-                        <button className="rounded-full bg-white/90 p-3 text-text-secondary shadow-lg backdrop-blur-md transition-colors hover:text-primary dark:bg-black/50">
+                        <button onClick={handleShare} className="rounded-full bg-white/90 p-3 text-text-secondary shadow-lg backdrop-blur-md transition-colors hover:text-primary dark:bg-black/50">
                             <Share2 size={20} />
                         </button>
                     </div>

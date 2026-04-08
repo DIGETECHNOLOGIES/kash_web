@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -37,19 +37,20 @@ const productSchema = yup.object().shape({
     min_quantity: yup.number().min(1, 'Min quantity must be at least 1').required(),
 });
 
-export default function AddProductPage() {
+export default function EditProductPage() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { id } = useParams();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
-    const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+    const [images, setImages] = useState<{ file: File | null; preview: string; isExisting?: boolean }[]>([]);
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
         queryFn: () => productApi.listCategories(),
     });
 
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(productSchema),
         defaultValues: {
             quantity: 1,
@@ -57,24 +58,58 @@ export default function AddProductPage() {
         }
     });
 
+    const { data: currentProduct, isLoading: isLoadingProduct } = useQuery({
+        queryKey: ['product', id],
+        queryFn: () => productApi.getProductById(id as string),
+        enabled: !!id,
+    });
+
+    React.useEffect(() => {
+        if (currentProduct) {
+            reset({
+                name: currentProduct.name,
+                description: currentProduct.description || '',
+                current_price: String(currentProduct.price),
+                previous_price: currentProduct.previousPrice ? String(currentProduct.previousPrice) : '',
+                category: String(currentProduct.category || ''),
+                quantity: currentProduct.quantity || 1,
+                min_quantity: currentProduct.minQuantity || 1,
+            });
+
+            const initialImages: any[] = [];
+            if (currentProduct.images) {
+                initialImages.push({ file: null, preview: currentProduct.images, isExisting: true });
+            }
+            if (currentProduct.additional_images) {
+                currentProduct.additional_images.forEach((img: any) => {
+                    initialImages.push({ file: null, preview: img, isExisting: true });
+                });
+            }
+            setImages(initialImages);
+        }
+    }, [currentProduct, reset]);
+
     const { data: shopData } = useQuery({
         queryKey: ['user-shop'],
         queryFn: () => shopApi.userShop(),
     });
 
-    const createMutation = useMutation({
+    const updateMutation = useMutation({
         mutationFn: (data: any) => {
             if (!shopData?.id) {
                 throw new Error("Could not find active shop.");
             }
-            return productApi.createProduct({
+            // Only send new image files for now or rely on backend logic
+            const newImages = images.filter(img => !img.isExisting && img.file).map(img => img.file);
+            return productApi.updateProduct(id as string, {
                 ...data,
                 shop: shopData.id,
-                images: images.map(img => img.file),
+                ...(newImages.length > 0 && { images: newImages }),
             } as any);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['product', id] });
             router.push('/profile/shop');
         },
     });
@@ -99,7 +134,7 @@ export default function AddProductPage() {
             alert('Please add at least one product image.');
             return;
         }
-        createMutation.mutate(data);
+        updateMutation.mutate(data);
     };
 
     return (
@@ -110,8 +145,8 @@ export default function AddProductPage() {
                 </button>
 
                 <header className="mb-12">
-                    <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">Publish <span className="text-primary underline decoration-primary/30">New Product</span></h1>
-                    <p className="text-text-secondary">Fill in the details to list your professional items on the KASH network.</p>
+                    <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">Edit <span className="text-primary underline decoration-primary/30">Your Product</span></h1>
+                    <p className="text-text-secondary">Update the details of your listing securely on the KASH network.</p>
                 </header>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -271,9 +306,9 @@ export default function AddProductPage() {
                             <Button
                                 type="submit"
                                 className="w-full h-20 rounded-[2rem] text-lg font-black uppercase italic shadow-2xl shadow-primary/30 group bg-primary"
-                                isLoading={createMutation.isPending}
+                                isLoading={updateMutation.isPending}
                             >
-                                Publish Listing
+                                Update Listing
                                 <CheckCircle2 className="ml-2 h-6 w-6 transition-transform group-hover:scale-110" />
                             </Button>
                             <Button

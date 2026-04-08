@@ -51,6 +51,7 @@ export const SHOP_ENDPOINTS = {
     LIST_SHOPS: `${API_PATHS.SHOP}/shops/`,
     CREATE_SHOP: `${API_PATHS.SHOP}/shops/`,
     USER_SHOP: `${API_PATHS.SHOP}/my-shops/`,
+    SHOP_ANALYTICS: `${API_PATHS.SHOP}/analytics/`,
     GET_SHOP_DETAIL: (id: string | number) => `${API_PATHS.SHOP}/shops/${id}/`,
     UPDATE_SHOP: (id: string | number) => `${API_PATHS.SHOP}/shops/${id}/`,
     VERIFY_SHOP: (id: string | number) => `${API_PATHS.SHOP}/shops/${id}/verify/`,

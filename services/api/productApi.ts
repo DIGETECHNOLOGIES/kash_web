@@ -49,11 +49,15 @@ interface Category {
 
 interface CreateProductData {
     name: string;
-    description: string;
+    description?: string;
     current_price: string;
     previous_price?: string;
-    category: number;
-    images: File | string;
+    category: string | number;
+    shop: string | number;
+    location?: string;
+    quantity: string | number;
+    min_quantity: string | number;
+    images: File[];
 }
 
 interface PaginatedResponse<T> {
@@ -97,7 +101,6 @@ export const productApi = {
             throw handleAPIError(error, 'List Products');
         }
     },
-
     /**
      * Create a new product
      */
@@ -105,16 +108,26 @@ export const productApi = {
         try {
             const formData = new FormData();
             formData.append('name', productData.name);
-            formData.append('description', productData.description);
-            formData.append('current_price', productData.current_price);
+            formData.append('description', productData.description || '');
+            formData.append('current_price', String(productData.current_price));
 
             if (productData.previous_price) {
-                formData.append('previous_price', productData.previous_price);
+                formData.append('previous_price', String(productData.previous_price));
             }
 
             formData.append('category', String(productData.category));
-            if (productData.images instanceof File) {
-                formData.append('images', productData.images);
+            formData.append('shop', String(productData.shop));
+
+            if (productData.location) {
+                formData.append('location', productData.location);
+            }
+            formData.append('quantity', String(productData.quantity));
+            formData.append('min_quantity', String(productData.min_quantity));
+
+            if (Array.isArray(productData.images)) {
+                productData.images.forEach((file) => {
+                    formData.append('images', file);
+                });
             }
 
             const response = await apiClient.post<any>(

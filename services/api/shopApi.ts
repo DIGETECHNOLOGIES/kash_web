@@ -204,4 +204,39 @@ export const shopApi = {
             throw handleAPIError(error, 'Search Shops');
         }
     },
+
+    /**
+     * Get analytics for the authenticated user's shop
+     */
+    getShopAnalytics: async (period: 'week' | 'month' | 'year' | 'all' = 'month'): Promise<ShopAnalytics> => {
+        try {
+            const response = await apiClient.get<ShopAnalytics>(
+                SHOP_ENDPOINTS.SHOP_ANALYTICS,
+                { params: { period } }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw handleAPIError(error, 'Shop Analytics');
+        }
+    },
 };
+
+export interface ShopAnalytics {
+    total_revenue: string;
+    total_orders: number;
+    total_products: number;
+    total_customers: number;
+    average_order_value: string;
+    all_time_revenue: string;
+    all_time_orders: number;
+    top_products: Array<{
+        id: number;
+        name: string;
+        sales: number;
+        revenue: string;
+    }>;
+    daily_revenue: Array<{
+        date: string;
+        revenue: string;
+    }>;
+}
