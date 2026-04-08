@@ -22,11 +22,19 @@ function resolveImageUrl(input: any): string {
         if (typeof value === 'string') return value.trim();
         if (Array.isArray(value)) {
             const firstString = value.find((item) => typeof item === 'string' && item.trim());
-            return typeof firstString === 'string' ? firstString.trim() : undefined;
+            if (typeof firstString === 'string') return firstString.trim();
+
+            const firstObject = value.find((item) => item && typeof item === 'object');
+            if (firstObject) return resolveInput(firstObject);
+            return undefined;
         }
         if (typeof value === 'object') {
             if (typeof value.uri === 'string') return value.uri.trim();
             if (typeof value.url === 'string') return value.url.trim();
+            if (typeof value.image === 'string') return value.image.trim();
+            if (typeof value.src === 'string') return value.src.trim();
+            if (typeof value.path === 'string') return value.path.trim();
+            if (typeof value.file === 'string') return value.file.trim();
         }
         return undefined;
     };
@@ -68,8 +76,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             images: [
                 {
                     url: imageUrl,
-                    width: 800,
-                    height: 800,
+                    width: 1200,
+                    height: 630,
                     alt: product.name,
                 },
             ],

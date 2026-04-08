@@ -215,8 +215,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 <>
                                     <MenuItem
                                         icon={Package}
-                                        label={user?.has_shop ? t('sidebar.shopOrders') : t('sidebar.myOrders')}
-                                        href={user?.has_shop ? '/profile/shop/orders' : '/profile/orders'}
+                                        label={t('sidebar.myOrders')}
+                                        href="/profile/orders"
                                     />
                                     <MenuItem icon={Wallet} label={t('sidebar.wallet')} href="/profile/wallet" />
                                     <MenuItem icon={Bell} label={t('notifications.title')} href="/profile/notifications" badge={notificationData?.count > 0 ? notificationData.count : undefined} />

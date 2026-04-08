@@ -206,10 +206,6 @@ export default function PaymentPage() {
                                     <span>Product Total</span>
                                     <span>{formatCurrency(Number(order.productTotal || order.totalAmount || 0))}</span>
                                 </div>
-                                <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <span>Service Fee</span>
-                                    <span>{formatCurrency(Math.max(Number(order.payableTotal || 0) - Number(order.productTotal || 0), 0))}</span>
-                                </div>
                                 <div className="flex justify-between items-end pt-4 border-t border-white/20">
                                     <span className="text-lg font-black italic uppercase tracking-tighter">Total</span>
                                     <span className="text-2xl font-black text-primary italic">{formatCurrency(Number(order.payableTotal || order.total || 0))}</span>

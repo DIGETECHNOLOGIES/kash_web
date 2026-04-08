@@ -108,7 +108,7 @@ export const PWAInstallPrompt = () => {
                                     onClick={handlePlayStoreRedirect}
                                 >
                                     <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <img src="/play.png" alt="Play Store" className="h-8 w-8" />
+                                    <img src="/playstore.png" alt="Play Store" className="h-8 w-8" />
                                     <div className="flex flex-col items-start leading-none">
                                         <span className="text-[10px] uppercase font-black text-zinc-400 tracking-widest mb-1">Get it on</span>
                                         <span className="text-xl font-black italic tracking-tighter uppercase italic">Google Play</span>

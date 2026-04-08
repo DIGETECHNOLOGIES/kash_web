@@ -21,8 +21,7 @@ export default function CartPage() {
     const { isAuthenticated } = useAuthStore();
 
     const subtotal = getTotal();
-    const serviceFee = Math.round(subtotal * 0.02);
-    const total = subtotal + serviceFee;
+    const total = subtotal;
 
     const handleCheckout = () => {
         if (!isAuthenticated) {
@@ -123,10 +122,6 @@ export default function CartPage() {
                                 <div className="flex justify-between text-sm text-slate-400">
                                     <span>{t('cart.subtotal')}</span>
                                     <span className="font-bold text-white">{formatCurrency(subtotal)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm text-slate-400">
-                                    <span>{t('cart.serviceFee')} (2%)</span>
-                                    <span className="font-bold text-white">{formatCurrency(serviceFee)}</span>
                                 </div>
                                 <div className="pt-4 border-t border-white/10 flex justify-between items-center">
                                     <span className="font-black italic uppercase text-lg">{t('cart.total')}</span>

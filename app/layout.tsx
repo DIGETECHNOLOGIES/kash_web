@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Outfit } from 'next/font/google';
 import './globals.css';
 import { RootProvider } from '@/components/layout/RootProvider';
@@ -9,13 +9,12 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kash.digetech.org'),
   title: 'KASH Marketplace - Buy & Sell in Cameroon',
   description: 'The leading professional marketplace in Cameroon. Shop the best products, follow premium stores, and enjoy secure escrow payments with KASH.',
   keywords: ['marketplace cameroon', 'ecommerce cameroon', 'kash marketplace', 'online shopping cameroon', 'MTN MoMo payments', 'Orange Money Cameroon', 'KASH', 'trusted sellers'],
   authors: [{ name: 'KASH Enterprise' }],
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   manifest: '/manifest.json',
-  themeColor: '#00d084',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -29,11 +28,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'KASH Marketplace - The #1 Trusted Shop in Cameroon',
     description: 'Discover thousands of professional products and verified shops. Pay securely with Mobile Money and get fast delivery.',
-    url: 'https://kash.pro',
+    url: 'https://kash.digetech.org',
     siteName: 'KASH Marketplace',
     images: [
       {
-        url: '/logo.png',
+        url: 'https://kash.digetech.org/logo.png',
         width: 800,
         height: 600,
         alt: 'KASH Marketplace Logo',
@@ -46,8 +45,15 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'KASH Marketplace - Shop Securely in Cameroon',
     description: 'Verified shops and secure payments at your fingertips.',
-    images: ['/logo.png'],
+    images: ['https://kash.digetech.org/logo.png'],
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#00d084',
 };
 
 import { PWAInstallPrompt } from '@/components/common/PWAInstallPrompt';

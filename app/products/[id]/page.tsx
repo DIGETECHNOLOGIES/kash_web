@@ -83,7 +83,8 @@ export default function ProductDetailsPage() {
         try {
             // Initiate a user_shop conversation using shopId
             const convo = await messagingApi.startConversation(String(product.shopId), 'BUYER', true);
-            router.push(`/messages?convo=${convo.id}`);
+            const initialMessage = encodeURIComponent(`[Product #${product.name} (${product.id})] `);
+            router.push(`/messages?convo=${convo.id}&initialMessage=${initialMessage}`);
         } catch (error) {
             console.error('Failed to contact merchant', error);
             toast.error('Could not start conversation');

@@ -221,12 +221,12 @@ export default function ShopOrdersPage() {
                                             </div>
 
                                             {/* Action Buttons */}
-                                            <div className="flex flex-row md:flex-col gap-3 w-full md:w-auto mt-6 md:mt-0 pt-8 md:pt-0 border-t md:border-t-0 border-border/40 shrink-0">
+                                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-end gap-3 w-full sm:w-auto mt-6 sm:mt-0 pt-8 sm:pt-0 border-t sm:border-t-0 border-border/40 shrink-0">
                                                 {order.status === 'PENDING' && (
                                                     <Button
                                                         onClick={() => updateStatusMutation.mutate({ id: order.id, status: 'PROCESSING' })}
                                                         isLoading={updateStatusMutation.isPending}
-                                                        className="flex-1 rounded-2xl h-14 font-black uppercase tracking-tight italic bg-info hover:bg-info/90 text-[10px]"
+                                                        className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic bg-info hover:bg-info/90 text-[10px]"
                                                     >
                                                         Accept <Check size={18} className="ml-1" />
                                                     </Button>
@@ -235,7 +235,7 @@ export default function ShopOrdersPage() {
                                                     <Button
                                                         onClick={() => updateStatusMutation.mutate({ id: order.id, status: 'SHIPPED' })}
                                                         isLoading={updateStatusMutation.isPending}
-                                                        className="flex-1 rounded-2xl h-14 font-black uppercase tracking-tight italic bg-primary text-[10px]"
+                                                        className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic bg-primary text-[10px]"
                                                     >
                                                         Mark Shipped <Truck size={18} className="ml-1" />
                                                     </Button>
@@ -243,14 +243,14 @@ export default function ShopOrdersPage() {
                                                 <Button
                                                     variant="outline"
                                                     onClick={() => router.push(`/profile/orders/${order.id}`)}
-                                                    className="flex-1 rounded-2xl h-14 font-black uppercase tracking-tight italic border-border/60 hover:border-primary/50 text-[10px]"
+                                                    className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic border-border/60 hover:border-primary/50 text-[10px]"
                                                 >
                                                     Details <ChevronRight size={18} className="ml-1" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
-                                                    onClick={() => router.push(`/messages?recipientId=${order.buyerId}&name=${encodeURIComponent(order.buyer)}&type=user&orderId=${order.id}`)}
-                                                    className="rounded-2xl h-14 w-14 p-0 bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-inner"
+                                                    onClick={() => router.push(`/messages?recipientId=${order.buyerId}&type=user&orderId=${order.id}&sendAsShopId=${order.shopId}&role=SHOP`)}
+                                                    className="self-start sm:self-auto rounded-2xl h-14 w-14 p-0 bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-inner"
                                                 >
                                                     <MessageSquare size={22} />
                                                 </Button>

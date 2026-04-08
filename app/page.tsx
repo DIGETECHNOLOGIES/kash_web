@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -20,32 +20,65 @@ export default function HomePage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
-  const { data: homeData, isLoading, refetch } = useQuery({
-    queryKey: ['home', 'dashboard'],
-    queryFn: async () => {
-      const [catsRes, shopsRes, productsRes] = await Promise.all([
-        productApi.listCategories(),
-        shopApi.listShops(1, 10),
-        productApi.listProducts({ page_size: 20 }),
-      ]);
-
-      return {
-        categories: catsRes.results || [],
-        shops: shopsRes.results || [],
-        products: productsRes.results || [],
-      };
-    },
+  const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
+    queryKey: ['home', 'categories'],
+    queryFn: () => productApi.listCategories(),
   });
 
-  const categories = homeData?.categories || [];
-  const shops = homeData?.shops || [];
-  const products = homeData?.products || [];
+  const { data: shopsData, isLoading: isLoadingShops } = useQuery({
+    queryKey: ['home', 'shops'],
+    queryFn: () => shopApi.listShops(1, 10),
+  });
 
-  const filteredProducts = selectedCategory
-    ? products.filter((p: any) => String(p.category_name || p.category) === selectedCategory || String(p.category) === selectedCategory)
-    : products;
+  const productsQuery = useInfiniteQuery({
+    queryKey: ['home', 'products', selectedCategoryId],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      productApi.listProducts(
+        {
+          page_size: 20,
+          ...(selectedCategoryId ? { category: selectedCategoryId } : {}),
+        },
+        Number(pageParam),
+        20
+      ),
+    getNextPageParam: (lastPage, pages) => (lastPage?.next ? pages.length + 1 : undefined),
+  });
+
+  const categories = categoriesData?.results || [];
+  const shops = shopsData?.results || [];
+
+  const products = useMemo(() => {
+    const pages = productsQuery.data?.pages || [];
+    return pages.flatMap((p: any) => p.results || []);
+  }, [productsQuery.data]);
+
+  const isLoading = isLoadingCategories || isLoadingShops || productsQuery.isLoading;
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    if (!productsQuery.hasNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          if (!productsQuery.isFetchingNextPage) {
+            productsQuery.fetchNextPage().catch(() => { });
+          }
+        }
+      },
+      { root: null, rootMargin: '300px', threshold: 0 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [productsQuery.hasNextPage, productsQuery.isFetchingNextPage, productsQuery.fetchNextPage]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -114,11 +147,11 @@ export default function HomePage() {
           <h2 className="px-4 text-lg font-bold mb-4">{t('home.categories')}</h2>
           <div className="flex overflow-x-auto pb-4 px-4 gap-3 no-scrollbar scroll-smooth">
             {categories.map((category: any) => {
-              const isSelected = selectedCategory === category.name;
+              const isSelected = selectedCategoryId === Number(category.id);
               return (
                 <button
                   key={category.id}
-                  onClick={() => setSelectedCategory(isSelected ? null : category.name)}
+                  onClick={() => setSelectedCategoryId(isSelected ? null : Number(category.id))}
                   className={`
                     flex-shrink-0 px-8 py-3 rounded-full text-sm font-black transition-all duration-300 border uppercase italic tracking-tighter
                     ${isSelected
@@ -177,12 +210,21 @@ export default function HomePage() {
               animate="show"
               className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"
             >
-              {filteredProducts.map((product: any) => (
+              {products.map((product: any) => (
                 <motion.div key={product.id} variants={item}>
                   <ProductCard product={product} />
                 </motion.div>
               ))}
             </motion.div>
+          )}
+
+          {/* Infinite scroll sentinel */}
+          {!isLoading && productsQuery.hasNextPage && (
+            <div ref={loadMoreRef} className="py-10 flex items-center justify-center">
+              <div className="text-sm font-bold text-text-secondary uppercase tracking-widest">
+                {productsQuery.isFetchingNextPage ? (t('common.loading') || 'Loading...') : (t('common.loadMore') || 'Load more')}
+              </div>
+            </div>
           )}
         </section>
       </div>

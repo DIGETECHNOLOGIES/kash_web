@@ -27,7 +27,7 @@ import {
     Plus,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatImageUrl, formatCurrency } from '@/utils/formatters';
@@ -120,12 +120,38 @@ function ConversationAvatar({ participant, size = 48 }: { participant?: Conversa
     );
 }
 
+function buildOrderTag(order: any): string {
+    const code = String(order?.orderCode || order?.order_code || order?.code || order?.id || '---');
+    const id = String(order?.id || '');
+    return `[Order #${code} (${id})] `;
+}
+
+function buildProductTag(product: any): string {
+    const name = String(product?.name || 'Product');
+    const id = String(product?.id || '');
+    return `[Product #${name} (${id})] `;
+}
+
+function extractTagSummary(tag: string): { kind: 'order' | 'product' | 'other'; label: string } {
+    const trimmed = String(tag || '').trim();
+    if (trimmed.startsWith('[Order #')) {
+        const code = trimmed.match(/\[Order\s+#([^\(\]]+)/i)?.[1]?.trim();
+        return { kind: 'order', label: code ? `Order #${code}` : 'Order' };
+    }
+    if (trimmed.startsWith('[Product #')) {
+        const name = trimmed.match(/\[Product\s+#([^\(\]]+)/i)?.[1]?.trim();
+        return { kind: 'product', label: name ? `Product: ${name}` : 'Product' };
+    }
+    return { kind: 'other', label: 'Attachment' };
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function MessagesPage() {
     const { t } = useTranslation();
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [inputText, setInputText] = useState('');
@@ -135,6 +161,11 @@ export default function MessagesPage() {
     const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [pendingTag, setPendingTag] = useState<string | null>(null);
+    const [sendAsShopIdOverride, setSendAsShopIdOverride] = useState<string | null>(null);
+    const [myShopId, setMyShopId] = useState<string | null>(null);
+
+    const didInitFromParamsRef = useRef(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -166,8 +197,8 @@ export default function MessagesPage() {
     });
 
     const sendMutation = useMutation({
-        mutationFn: (data: { content?: string; image?: File }) =>
-            messagingApi.sendMessage(selectedId!, { content: data.content, image: data.image }),
+        mutationFn: (data: { content?: string; image?: File; send_as_shop_id?: string | number }) =>
+            messagingApi.sendMessage(selectedId!, { content: data.content, image: data.image, send_as_shop_id: data.send_as_shop_id }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['conversation', selectedId] });
             queryClient.invalidateQueries({ queryKey: ['conversations'] });
@@ -176,6 +207,20 @@ export default function MessagesPage() {
             setImagePreview(null);
         },
     });
+
+    useEffect(() => {
+        if (!user?.has_shop) return;
+        let cancelled = false;
+        shopApi.userShop()
+            .then((shop) => {
+                if (cancelled) return;
+                if (shop?.id) setMyShopId(String(shop.id));
+            })
+            .catch(() => { });
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.has_shop]);
 
     // ── Auto-scroll ───────────────────────────────────────────────────────────
     useEffect(() => {
@@ -190,11 +235,164 @@ export default function MessagesPage() {
         messagingApi.markAsRead(id).catch(() => { });
     }, []);
 
+    // ── Init from URL params (match mobile behavior) ───────────────────────
+    useEffect(() => {
+        if (didInitFromParamsRef.current) return;
+        didInitFromParamsRef.current = true;
+
+        const convoId = searchParams.get('convo');
+        const shopId = searchParams.get('shop') || searchParams.get('shopId');
+        const recipientId = searchParams.get('recipientId');
+        const roleParam = (searchParams.get('role') || searchParams.get('as'))?.toUpperCase();
+        const sendAsShopId = searchParams.get('sendAsShopId') || searchParams.get('send_as_shop_id');
+        const orderId = searchParams.get('orderId');
+        const productId = searchParams.get('productId');
+        const initialMessage = searchParams.get('initialMessage');
+
+        if (sendAsShopId) setSendAsShopIdOverride(String(sendAsShopId));
+
+        const resolveInitialTag = async (): Promise<string | null> => {
+            if (initialMessage) return String(initialMessage);
+            if (orderId) {
+                try {
+                    const order = await orderApi.getOrderById(orderId);
+                    return buildOrderTag(order);
+                } catch {
+                    return `[Order #--- (${orderId})] `;
+                }
+            }
+            if (productId) {
+                try {
+                    const product = await productApi.getProductById(productId);
+                    return buildProductTag(product);
+                } catch {
+                    return `[Product #Product (${productId})] `;
+                }
+            }
+            return null;
+        };
+
+        (async () => {
+            const tag = await resolveInitialTag();
+            if (tag) setPendingTag(tag);
+
+            if (convoId) {
+                handleSelectConversation(String(convoId));
+                return;
+            }
+
+            const isShopConversation = !!shopId;
+            const targetId = String(shopId || recipientId || '').trim();
+            if (!targetId || targetId === 'undefined' || targetId === 'null') return;
+
+            const inferredRole: 'BUYER' | 'SHOP' =
+                roleParam === 'SHOP' || roleParam === 'SELLER'
+                    ? 'SHOP'
+                    : sendAsShopId
+                        ? 'SHOP'
+                        : 'BUYER';
+
+            try {
+                const convo = await messagingApi.startConversation(targetId, inferredRole, isShopConversation);
+                handleSelectConversation(String(convo.id));
+                router.replace(`/messages?convo=${convo.id}`);
+            } catch (error) {
+                console.error('Failed to start conversation from params', error);
+                toast.error('Could not open chat');
+            }
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams, handleSelectConversation, router]);
+
     const handleSend = (e?: React.FormEvent) => {
         e?.preventDefault();
         if (!selectedId) return;
-        if (!inputText.trim() && !imageFile) return;
-        sendMutation.mutate({ content: inputText.trim() || undefined, image: imageFile || undefined });
+
+        const shouldAttachTag = !!pendingTag && !imageFile;
+        const baseText = inputText.trim();
+        const fullText = shouldAttachTag ? `${pendingTag}\n${baseText}`.trim() : baseText;
+
+        if (!fullText && !imageFile && !pendingTag) return;
+
+        const sendAsShopId =
+            sendAsShopIdOverride || (activeConversation?.selfRole === 'SHOP' ? myShopId : null);
+
+        sendMutation.mutate({
+            content: fullText || (shouldAttachTag ? String(pendingTag).trim() : undefined),
+            image: imageFile || undefined,
+            send_as_shop_id: sendAsShopId || undefined,
+        });
+
+        if (shouldAttachTag) setPendingTag(null);
+    };
+
+    const renderTaggedMessageContent = (content: string, isOwn: boolean) => {
+        const parts = String(content).split(/(\[(?:Order|Product) #[^\]]+\])/g);
+        return parts.map((part, index) => {
+            const orderMatch = part?.match?.(/\[Order #([A-Z0-9-]+)(?:\s+\(([^)]+)\))?\]/i);
+            if (orderMatch) {
+                const code = orderMatch[1];
+                const id = orderMatch[2] || code;
+                return (
+                    <button
+                        key={`order-${index}`}
+                        type="button"
+                        onClick={() => router.push(`/profile/orders/${id}`)}
+                        className={cn(
+                            'mt-1 mb-2 w-full text-left rounded-2xl border px-4 py-3 transition-colors',
+                            isOwn ? 'border-white/25 bg-white/15 hover:bg-white/20' : 'border-primary/15 bg-primary/5 hover:bg-primary/10'
+                        )}
+                    >
+                        <div className="flex items-center gap-2">
+                            <ShoppingCart size={18} className={cn(isOwn ? 'text-white' : 'text-primary')} />
+                            <span className={cn('text-sm font-black italic', isOwn ? 'text-white' : 'text-primary')}>
+                                {t('order.orderNumber') || 'Order'} #{code}
+                            </span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between">
+                            <span className={cn('text-xs font-bold uppercase tracking-widest', isOwn ? 'text-white/80' : 'text-primary')}>
+                                {t('order.viewFullDetails') || 'View details'}
+                            </span>
+                            <ChevronLeft size={16} className={cn('rotate-180', isOwn ? 'text-white/80' : 'text-primary')} />
+                        </div>
+                    </button>
+                );
+            }
+
+            const productMatch = part?.match?.(/\[Product #(.+?)(?:\s+\(([^)]+)\))?\]/i);
+            if (productMatch) {
+                const productName = productMatch[1];
+                const productId = productMatch[2];
+                return (
+                    <button
+                        key={`product-${index}`}
+                        type="button"
+                        onClick={() => (productId ? router.push(`/products/${productId}`) : undefined)}
+                        className={cn(
+                            'mt-1 mb-2 w-full text-left rounded-2xl border px-4 py-3 transition-colors',
+                            isOwn ? 'border-white/25 bg-white/15 hover:bg-white/20' : 'border-primary/15 bg-primary/5 hover:bg-primary/10'
+                        )}
+                    >
+                        <div className="flex items-center gap-2">
+                            <ShoppingCart size={18} className={cn(isOwn ? 'text-white' : 'text-primary')} />
+                            <span className={cn('text-sm font-black italic', isOwn ? 'text-white' : 'text-primary')}>
+                                Product: {productName}
+                            </span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between">
+                            <span className={cn('text-xs font-bold uppercase tracking-widest', isOwn ? 'text-white/80' : 'text-primary')}>
+                                View product details
+                            </span>
+                            <ChevronLeft size={16} className={cn('rotate-180', isOwn ? 'text-white/80' : 'text-primary')} />
+                        </div>
+                    </button>
+                );
+            }
+
+            return part ? (
+                <span key={`text-${index}`}>{part}</span>
+            ) : null;
+        });
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,6 +476,7 @@ export default function MessagesPage() {
 
     const activeConv = conversations.find(c => c.id === selectedId);
     const otherParticipant = activeConversation?.otherParticipant || activeConv?.otherParticipant;
+    const tagSummary = pendingTag ? extractTagSummary(pendingTag) : null;
 
     // ─── Render ───────────────────────────────────────────────────────────────
     return (
@@ -536,7 +735,9 @@ export default function MessagesPage() {
                                                             )}
 
                                                             {msg.content && (
-                                                                <p className={cn("wa-bubble-text", isOwn ? "text-white" : "text-[#111b21]")}>{msg.content}</p>
+                                                                <div className={cn('wa-bubble-text', isOwn ? 'text-white' : 'text-[#111b21]')}>
+                                                                    {renderTaggedMessageContent(msg.content, isOwn)}
+                                                                </div>
                                                             )}
 
                                                             {!msg.image && (
@@ -559,6 +760,35 @@ export default function MessagesPage() {
 
                             {/* Input Area */}
                             <div className="wa-input-area relative">
+                                {pendingTag && (
+                                    <div className="px-4 pt-3">
+                                        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3 shadow-sm">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                                    <ShoppingCart size={18} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary">
+                                                        {tagSummary?.kind === 'order'
+                                                            ? (t('order.referencingOrder') || 'Referencing order')
+                                                            : tagSummary?.kind === 'product'
+                                                                ? 'Referencing product'
+                                                                : 'Referencing'}
+                                                    </p>
+                                                    <p className="text-sm font-bold truncate">{tagSummary?.label || ''}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setPendingTag(null)}
+                                                className="h-9 w-9 rounded-full bg-[#f0f2f5] flex items-center justify-center text-text-secondary hover:text-error hover:bg-error/10 transition-colors"
+                                                aria-label="Remove tag"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                                 {showEmojiPicker && (
                                     <div ref={emojiPickerRef} className="absolute bottom-20 left-4 z-[100] shadow-2xl border border-border rounded-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
                                         <EmojiPicker
@@ -634,7 +864,7 @@ export default function MessagesPage() {
                                         />
                                     </div>
 
-                                    {(inputText.trim() || imageFile) ? (
+                                    {(inputText.trim() || imageFile || pendingTag) ? (
                                         <button
                                             type="submit"
                                             disabled={sendMutation.isPending}

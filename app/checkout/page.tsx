@@ -19,7 +19,9 @@ import {
     Smartphone,
     CheckCircle2,
     Lock,
-    Package
+    Package,
+    Minus,
+    Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -31,7 +33,7 @@ import { formatImageUrl, formatCurrency } from '@/utils/formatters';
 export default function CheckoutPage() {
     const { t } = useTranslation();
     const router = useRouter();
-    const { items, getTotal, clearCart } = useCartStore();
+    const { items, getTotal, clearCart, updateQuantity } = useCartStore();
     const { user } = useAuthStore();
 
     const [step, setStep] = useState(1);
@@ -41,8 +43,7 @@ export default function CheckoutPage() {
     const [location, setLocation] = useState(user?.location || '');
 
     const subtotal = getTotal();
-    const serviceFee = Math.round(subtotal * 0.02);
-    const total = subtotal + serviceFee;
+    const total = subtotal;
 
     const handlePlaceOrder = async () => {
         if (!paymentMethod) {
@@ -67,15 +68,9 @@ export default function CheckoutPage() {
             }
 
             // 2. Initiate Payment
-            // Calculate fee per order proportion or just apply to first?
-            // For MVP simplicity, we apply the fee proportionally or just trust the loop.
-            // We will add the 2% fee to each payment request individually to match the UI total.
-
             for (const order of createdOrders) {
-                // Calculate specific total for this order + 2%
                 const orderSubtotal = Number(order.totalAmount || order.total || 0);
-                const orderFee = Math.round(orderSubtotal * 0.02);
-                const paymentAmount = orderSubtotal + orderFee;
+                const paymentAmount = orderSubtotal;
 
                 await paymentApi.initiatePayment({
                     amount: String(paymentAmount),
@@ -260,7 +255,28 @@ export default function CheckoutPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-[10px] font-black uppercase tracking-tight truncate">{item.product.name}</h4>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase">{t('product.quantity')}: {item.quantity}</p>
+                                            <div className="mt-1 flex items-center gap-2">
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase">{t('product.quantity')}:</span>
+                                                <div className="flex items-center rounded-lg border border-white/10 bg-white/5 overflow-hidden h-7">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                                        className="px-2 hover:bg-white/10 transition-colors"
+                                                        aria-label="Decrease quantity"
+                                                    >
+                                                        <Minus size={14} />
+                                                    </button>
+                                                    <span className="w-6 text-center text-[10px] font-black">{item.quantity}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                                                        className="px-2 hover:bg-white/10 transition-colors"
+                                                        aria-label="Increase quantity"
+                                                    >
+                                                        <Plus size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                         <span className="text-[10px] font-black italic">{(item.product.price * item.quantity).toLocaleString()} F</span>
                                     </div>
@@ -271,10 +287,6 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                     <span>{t('cart.subtotal')}</span>
                                     <span>{formatCurrency(subtotal)}</span>
-                                </div>
-                                <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <span>{t('cart.serviceFee')} (2%)</span>
-                                    <span>{formatCurrency(serviceFee)}</span>
                                 </div>
                                 <div className="flex justify-between items-end pt-4 border-t border-white/20">
                                     <span className="text-lg font-black italic uppercase tracking-tighter">{t('cart.total')}</span>

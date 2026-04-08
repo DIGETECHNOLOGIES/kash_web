@@ -168,28 +168,28 @@ export default function OrdersPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto mt-4 md:mt-0 pt-6 md:pt-0 border-t md:border-t-0 border-border/40">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 w-full sm:w-auto mt-4 sm:mt-0 pt-6 sm:pt-0 border-t sm:border-t-0 border-border/40 shrink-0">
                                                 {order.payment_status?.toUpperCase() !== 'PAID' && (
                                                     <Button
                                                         onClick={() => router.push(`/payment?orderId=${order.id}`)}
-                                                        className="flex-1 rounded-2xl h-12 md:h-14 font-black uppercase tracking-tight italic bg-success hover:bg-success/90"
+                                                        className="w-full sm:w-auto rounded-2xl h-12 md:h-14 font-black uppercase tracking-tight italic bg-success hover:bg-success/90"
                                                     >
                                                         Pay Now
                                                     </Button>
                                                 )}
                                                 <Button
                                                     onClick={() => router.push(`/profile/orders/${order.id}`)}
-                                                    className="flex-1 rounded-2xl h-12 md:h-14 font-black uppercase tracking-tight italic"
+                                                    className="w-full sm:w-auto rounded-2xl h-12 md:h-14 font-black uppercase tracking-tight italic"
                                                 >
                                                     Details <ChevronRight size={18} className="ml-1" />
                                                 </Button>
-                                                <Button
+                                                {/* <Button
                                                     variant="outline"
                                                     className="rounded-2xl h-12 md:h-14 w-12 md:w-auto p-0 md:px-6 border-border/60 hover:border-primary/50 text-text-secondary hover:text-primary transition-all"
                                                 >
                                                     <ExternalLink size={20} className="md:mr-2" />
                                                     <span className="hidden md:inline">Invoice</span>
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                         </div>
                                     </Card>

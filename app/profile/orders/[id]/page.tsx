@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-2 italic">Official Partner</h3>
                             <h4 className="text-xl font-black italic uppercase tracking-tight mb-6">{order.shopName}</h4>
                             <Button
-                                onClick={() => router.push(`/messages?shop=${order.shopId}`)}
+                                onClick={() => router.push(`/messages?shop=${order.shopId}&orderId=${order.id}`)}
                                 className="w-full rounded-2xl h-14 font-black uppercase italic shadow-lg shadow-primary/10"
                             >
                                 <MessageCircle size={20} className="mr-2" /> Message Seller
