@@ -27,9 +27,25 @@ export default function ReferralsPage() {
     const router = useRouter();
     const referralCode = "ELITE-88X2";
 
+    const referralLink = `https://digetech.org/register?ref=${referralCode}`;
+
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(`https://kash.market/register?ref=${referralCode}`);
+        navigator.clipboard.writeText(referralLink);
         toast.success('Referral link copied to clipboard!');
+    };
+
+    const handleShare = () => {
+        const shareText = `🚀 *Join KASH Marketplace*\n\nBuy, sell and resell securely in Cameroon. Use my referral code to get started!\n\n🎁 Code: *${referralCode}*\n👉 Register here: ${referralLink}`;
+        if (navigator.share) {
+            navigator.share({
+                title: 'Join KASH Marketplace',
+                text: shareText,
+                url: referralLink,
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(shareText);
+            toast.success('Invitation details copied!');
+        }
     };
 
     return (
@@ -69,7 +85,7 @@ export default function ReferralsPage() {
                                     </button>
                                 </div>
                             </div>
-                            <Button size="lg" className="w-full h-14 rounded-2xl font-black uppercase italic shadow-xl shadow-primary/20">
+                            <Button onClick={handleShare} size="lg" className="w-full h-14 rounded-2xl font-black uppercase italic shadow-xl shadow-primary/20">
                                 Invite Specialists <Share2 className="ml-2 h-5 w-5" />
                             </Button>
                         </div>

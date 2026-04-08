@@ -34,6 +34,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { buildShopShareText, getShopShareUrl, shareOrCopy } from '@/utils/share';
+import { Share2 } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 const shopSchema = yup.object().shape({
     name: yup.string().required('Shop name is required'),
@@ -123,6 +126,24 @@ export default function ShopManagePage() {
         if (window.confirm("Are you sure you want to delete this product?")) {
             deleteProductMutation.mutate(product.id);
         }
+    };
+
+    const handleShareShop = () => {
+        if (!userShop) return;
+        const deepLink = getShopShareUrl(userShop.id);
+        const shareText = buildShopShareText({
+            id: userShop.id,
+            name: userShop.name,
+            location: userShop.location,
+            region: userShop.region,
+        });
+
+        void shareOrCopy({
+            title: userShop.name,
+            text: shareText,
+            url: deepLink,
+            copiedToast: t('common.linkCopied') || 'Shop details copied!',
+        });
     };
 
 
@@ -282,6 +303,9 @@ export default function ShopManagePage() {
                         </div>
                     </div>
                     <div className="flex gap-3">
+                        <Button onClick={handleShareShop} variant="outline" className="rounded-2xl h-12 border-border/60 font-black uppercase italic text-xs bg-primary/10 text-primary border-primary/20">
+                            <Share2 size={18} className="mr-2" /> Share Shop
+                        </Button>
                         <Button variant="outline" className="rounded-2xl h-12 border-border/60 font-black uppercase italic text-xs">
                             <Settings size={18} className="mr-2" /> Shop Settings
                         </Button>

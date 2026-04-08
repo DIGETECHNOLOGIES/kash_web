@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Environment
+
+Copy `/.env.example` to `/.env.local` and set the values.
+
+For web push notifications you must also set `NEXT_PUBLIC_FIREBASE_VAPID_KEY` (Firebase Console → Project settings → Cloud Messaging → Web Push certificates).
+
 First, run the development server:
 
 ```bash

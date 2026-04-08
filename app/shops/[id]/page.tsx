@@ -17,6 +17,7 @@ import { Store, MapPin, ShieldCheck, MessageCircle, Share2, Star, Calendar, Chev
 import { motion } from 'framer-motion';
 import { formatImageUrl } from '@/utils/formatters';
 import { toast } from 'sonner';
+import { buildShopShareText, getShopShareUrl, shareOrCopy } from '@/utils/share';
 
 import { ReviewSection } from '@/components/common/ReviewSection';
 
@@ -54,16 +55,20 @@ export default function ShopDetailsPage() {
 
     const handleShare = () => {
         if (!shop) return;
-        if (navigator.share) {
-            navigator.share({
-                title: shop.name,
-                text: shop.description || t('shop.aboutUsMsg'),
-                url: `https://digetech.org/shops/${shop.id}`,
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(`https://digetech.org/shops/${shop.id}`);
-            toast.info(t('common.linkCopied') || 'Link Copied');
-        }
+        const deepLink = getShopShareUrl(shop.id);
+        const shareText = buildShopShareText({
+            id: shop.id,
+            name: shop.name,
+            location: shop.location,
+            region: shop.region,
+        });
+
+        void shareOrCopy({
+            title: shop.name,
+            text: shareText,
+            url: deepLink,
+            copiedToast: t('common.linkCopied') || 'Shop details copied!',
+        });
     };
 
     if (isLoadingShop) {
@@ -169,3 +174,4 @@ export default function ShopDetailsPage() {
         </MainLayout>
     );
 }
+

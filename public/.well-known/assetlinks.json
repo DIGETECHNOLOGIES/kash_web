@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.kash.marketplace",
+      "sha256_cert_fingerprints": [
+        "DF:C5:ED:80:06:E3:FE:04:78:A9:D7:E5:ED:18:EB:2B:94:22:B6:E7:AF:EE:03:12:94:A5:ED:61:5C:53:05:BD"
+      ]
+    }
+  }
+]

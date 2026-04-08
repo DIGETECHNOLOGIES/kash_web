@@ -51,6 +51,7 @@ export const metadata: Metadata = {
 };
 
 import { PWAInstallPrompt } from '@/components/common/PWAInstallPrompt';
+import { DeepLinkRedirect } from '@/components/common/DeepLinkRedirect';
 
 export default function RootLayout({
   children,
@@ -61,6 +62,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${outfit.variable} font-sans antialiased bg-background text-text`}>
         <RootProvider>
+          <DeepLinkRedirect />
           {children}
           <PWAInstallPrompt />
         </RootProvider>

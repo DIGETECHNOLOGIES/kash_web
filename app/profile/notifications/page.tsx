@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
@@ -22,12 +22,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi } from '@/services/api/notificationApi';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
+import { attachForegroundPushListener, enableWebPushNotifications } from '@/lib/webPush';
 
 export default function NotificationsPage() {
     const { t } = useTranslation();
     const router = useRouter();
+    const [isEnablingPush, setIsEnablingPush] = useState(false);
 
     const queryClient = useQueryClient();
+
+    useEffect(() => {
+        void attachForegroundPushListener();
+    }, []);
 
     const { data: notificationsData, isLoading } = useQuery({
         queryKey: ['notifications'],
@@ -82,6 +89,18 @@ export default function NotificationsPage() {
 
     const notifications = notificationsData?.results || [];
 
+    const handleEnablePush = async () => {
+        setIsEnablingPush(true);
+        try {
+            const token = await enableWebPushNotifications();
+            if (!token) return;
+        } catch (e: any) {
+            toast.error(e?.message || 'Failed to enable push notifications');
+        } finally {
+            setIsEnablingPush(false);
+        }
+    };
+
     return (
         <MainLayout>
             <div className="max-w-4xl mx-auto pb-20">
@@ -94,6 +113,14 @@ export default function NotificationsPage() {
                     </button>
 
                     <div className="flex items-center gap-3">
+                        <Button
+                            variant="outline"
+                            className="text-xs font-black uppercase tracking-widest"
+                            onClick={handleEnablePush}
+                            disabled={isEnablingPush}
+                        >
+                            {isEnablingPush ? 'Enabling...' : (t('settings.pushNotifications') || 'Enable Push')}
+                        </Button>
                         <Button
                             variant="ghost"
                             className="text-xs font-black uppercase tracking-widest text-primary"

@@ -6,8 +6,8 @@ import { MapPin, Package, Star, ShieldCheck, Share2 } from 'lucide-react';
 import { Shop } from '@/types';
 import { Card } from './Card';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { formatImageUrl } from '@/utils/formatters';
+import { buildShopShareText, getShopShareUrl, shareOrCopy } from '@/utils/share';
 
 interface ShopCardProps {
     shop: Shop;
@@ -19,16 +19,20 @@ export function ShopCard({ shop }: ShopCardProps) {
     const handleShare = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        const url = window.location.origin + `/shops/${shop.id}`;
-        if (navigator.share) {
-            navigator.share({
-                title: shop.name,
-                url: url,
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(url);
-            toast.info(t('common.linkCopied'));
-        }
+        const url = getShopShareUrl(shop.id);
+        const shareText = buildShopShareText({
+            id: shop.id,
+            name: shop.name,
+            location: shop.location,
+            region: shop.region,
+        });
+
+        void shareOrCopy({
+            title: shop.name,
+            text: shareText,
+            url,
+            copiedToast: t('common.linkCopied') || 'Shop details copied!',
+        });
     };
 
     return (
@@ -94,3 +98,4 @@ export function ShopCard({ shop }: ShopCardProps) {
         </Card>
     );
 }
+

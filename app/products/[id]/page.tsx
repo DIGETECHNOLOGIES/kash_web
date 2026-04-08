@@ -17,6 +17,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { formatImageUrl, formatCurrency } from '@/utils/formatters';
 import { toast } from 'sonner';
+import { buildProductShareText, getProductShareUrl, shareOrCopy } from '@/utils/share';
 
 import { ReviewSection } from '@/components/common/ReviewSection';
 
@@ -55,16 +56,22 @@ export default function ProductDetailsPage() {
 
     const handleShare = () => {
         if (!product) return;
-        if (navigator.share) {
-            navigator.share({
-                title: product.name,
-                text: product.description,
-                url: `https://digetech.org/products/${product.id}`,
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(`https://digetech.org/products/${product.id}`);
-            toast.info(t('common.linkCopied') || 'Link Copied');
-        }
+        const deepLink = getProductShareUrl(product.id);
+        const shareText = buildProductShareText({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            previousPrice: (product as any).previousPrice,
+            location: product.location,
+            description: product.description,
+        });
+
+        void shareOrCopy({
+            title: product.name,
+            text: shareText,
+            url: deepLink,
+            copiedToast: t('common.linkCopied') || 'Details & link copied!',
+        });
     };
 
     const handleContactMerchant = async () => {

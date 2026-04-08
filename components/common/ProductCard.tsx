@@ -12,6 +12,7 @@ import { Badge } from './Badge';
 import { useCartStore } from '@/store/cartStore';
 import { toast } from 'sonner';
 import { formatImageUrl, formatCurrency } from '@/utils/formatters';
+import { buildProductShareText, getProductShareUrl, shareOrCopy } from '@/utils/share';
 
 interface ProductCardProps {
     product: Product;
@@ -42,16 +43,22 @@ export function ProductCard({ product, onAddToCart, onPress, width = '100%', isO
     const handleShare = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        if (navigator.share) {
-            navigator.share({
-                title: product.name,
-                text: product.description,
-                url: `https://digetech.org/products/${product.id}`,
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(`https://digetech.org/products/${product.id}`);
-            toast.info(t('common.linkCopied') || 'Link Copied');
-        }
+        const deepLink = getProductShareUrl(product.id);
+        const shareText = buildProductShareText({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            previousPrice: (product as any).previousPrice,
+            location: product.location,
+            description: product.description,
+        });
+
+        void shareOrCopy({
+            title: product.name,
+            text: shareText,
+            url: deepLink,
+            copiedToast: t('common.linkCopied') || 'Link & details copied!',
+        });
     };
 
     return (
@@ -115,9 +122,7 @@ export function ProductCard({ product, onAddToCart, onPress, width = '100%', isO
                 {/* Price and Add Button */}
                 <div className="mt-auto flex items-end justify-between gap-2">
                     <div className="flex flex-col min-w-0">
-                        <span className="text-base font-black text-primary truncate italic">
-                            {formatCurrency(product.price)}
-                        </span>
+                        <span className="text-base font-black text-primary truncate italic">{formatCurrency(product.price)}</span>
                         {product.previousPrice && (
                             <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark line-through truncate opacity-70">
                                 {formatCurrency(product.previousPrice)}
@@ -153,3 +158,4 @@ export function ProductCard({ product, onAddToCart, onPress, width = '100%', isO
         </Card>
     );
 }
+
