@@ -3,15 +3,21 @@ import { initReactI18next } from 'react-i18next';
 import en from './en.json';
 import fr from './fr.json';
 
+import LanguageDetector from 'i18next-browser-languagedetector';
+
 i18n
+    .use(LanguageDetector)
     .use(initReactI18next)
     .init({
         resources: {
             en: { translation: en },
             fr: { translation: fr },
         },
-        lng: 'en',
         fallbackLng: 'en',
+        detection: {
+            order: ['localStorage', 'cookie', 'htmlTag'],
+            caches: ['localStorage', 'cookie'],
+        },
         interpolation: {
             escapeValue: false,
         },

@@ -34,9 +34,21 @@
     --color-border: #1E293B;
   }
 
+  html {
+    font-size: 16px;
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      font-size: 17.5px;
+    }
+  }
+
   body {
     @apply bg-background text-text transition-colors duration-300 selection:bg-primary selection:text-white;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 1rem;
+    line-height: 1.6;
   }
 
   h1,

@@ -2,59 +2,95 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Store, MapPin, Star, ShieldCheck } from 'lucide-react';
+import { MapPin, Package, Star, ShieldCheck, Share2 } from 'lucide-react';
 import { Shop } from '@/types';
 import { Card } from './Card';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { formatImageUrl } from '@/utils/formatters';
 
 interface ShopCardProps {
     shop: Shop;
 }
 
 export function ShopCard({ shop }: ShopCardProps) {
+    const { t } = useTranslation();
+
+    const handleShare = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const url = window.location.origin + `/shops/${shop.id}`;
+        if (navigator.share) {
+            navigator.share({
+                title: shop.name,
+                url: url,
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url);
+            toast.info('Link copied to clipboard');
+        }
+    };
+
     return (
-        <Link href={`/shops/${shop.slug}`}>
-            <Card className="p-0 overflow-hidden h-full flex flex-col group cursor-pointer border-border/60 hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-primary/5">
-                <div className="h-32 bg-secondary relative overflow-hidden">
+        <Card className="mb-4 overflow-hidden bg-surface dark:bg-surface-dark border border-border dark:border-border-dark p-3" hoverable>
+            <Link href={`/shops/${shop.id}`} className="flex gap-4">
+                {/* Image/Avatar */}
+                <div className="h-20 w-20 rounded-2xl bg-primary/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
                     {shop.image ? (
-                        <img src={shop.image} alt={shop.name} className="absolute inset-0 w-full h-full object-cover" />
+                        <img
+                            src={formatImageUrl(shop.image)}
+                            alt={shop.name}
+                            className="w-full h-full object-cover"
+                        />
                     ) : (
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary opacity-50" />
+                        <span className="text-2xl font-black text-primary italic uppercase">{shop.name.charAt(0)}</span>
                     )}
-                    <div className="absolute bottom-0 left-6 translate-y-1/2">
-                        <div className="h-20 w-20 rounded-2xl bg-surface border-4 border-surface shadow-lg overflow-hidden flex items-center justify-center text-primary relative">
-                            {shop.image ? (
-                                <img src={shop.image} alt={shop.name} className="w-full h-full object-cover" />
-                            ) : (
-                                <Store size={32} />
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 flex flex-col justify-between min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <h3 className="text-lg font-black text-text dark:text-text-dark truncate leading-tight group-hover:text-primary transition-colors italic uppercase tracking-tighter">
+                                {shop.name}
+                            </h3>
+                            {shop.verified && (
+                                <ShieldCheck size={18} className="text-primary shrink-0" />
                             )}
                         </div>
                     </div>
-                </div>
 
-                <div className="pt-12 p-6 flex flex-col flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{shop.name}</h3>
-                        {shop.verified && (
-                            <ShieldCheck size={18} className="text-primary" />
-                        )}
-                    </div>
-
-                    <p className="text-sm text-text-secondary line-clamp-2 mb-6 flex-1 italic">
-                        {shop.location}, {shop.region}
-                    </p>
-
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
-                        <div className="flex items-center gap-1.5 text-xs font-black text-text-secondary">
-                            <MapPin size={14} className="text-primary" />
-                            {shop.location}
+                    <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5 text-text-secondary dark:text-text-secondary-dark font-bold">
+                            <MapPin size={14} className="shrink-0 text-primary" />
+                            <span className="text-[13px] truncate uppercase tracking-tight">
+                                {shop.region ? `${shop.region}, ` : ''}{shop.location}
+                            </span>
                         </div>
-                        <div className="flex items-center gap-1 text-xs font-bold text-warning">
-                            <Star size={14} className="fill-warning" />
-                            {shop.average_rating?.toFixed(1) || '0.0'} ({shop.review_count || 0})
+                        <div className="flex items-center gap-1.5 text-text-secondary dark:text-text-secondary-dark font-bold">
+                            <Package size={14} className="shrink-0 text-primary" />
+                            <span className="text-[13px] truncate uppercase tracking-tight">
+                                {shop.totalProducts || 0} {t('shop.totalProducts') || 'Products'}
+                            </span>
                         </div>
                     </div>
+
+                    <div className="flex items-center justify-between mt-1">
+                        <div className="flex items-center gap-1 text-sm font-black text-text dark:text-text-dark italic">
+                            <Star size={14} className="fill-warning text-warning" />
+                            <span>
+                                {shop.average_rating?.toFixed(1) || '0.0'} ({shop.review_count || 0})
+                            </span>
+                        </div>
+                        <button
+                            onClick={handleShare}
+                            className="p-1.5 hover:bg-primary/10 rounded-full transition-colors group/share"
+                        >
+                            <Share2 size={20} className="text-primary group-hover/share:scale-110 transition-transform" />
+                        </button>
+                    </div>
                 </div>
-            </Card>
-        </Link>
+            </Link>
+        </Card>
     );
 }

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'error';
+    variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'error' | 'surface' | 'white';
     size?: 'sm' | 'md' | 'lg' | 'icon';
     isLoading?: boolean;
 }
@@ -25,6 +25,8 @@ export function Button({
         outline: 'border border-border bg-transparent hover:bg-background text-text active:scale-95',
         ghost: 'bg-transparent hover:bg-background text-text',
         error: 'bg-error text-white hover:opacity-90 active:scale-95',
+        surface: 'bg-surface dark:bg-surface-dark text-text dark:text-text-dark hover:opacity-90 active:scale-95 shadow-sm',
+        white: 'bg-white text-primary hover:bg-gray-50 active:scale-95 shadow-md',
     };
 
     const sizes = {

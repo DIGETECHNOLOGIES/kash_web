@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 
 import { orderApi } from '@/services/api/orderApi';
 import { paymentApi } from '@/services/api/paymentApi';
+import { formatImageUrl, formatCurrency } from '@/utils/formatters';
 
 export default function CheckoutPage() {
     const { t } = useTranslation();
@@ -59,7 +60,7 @@ export default function CheckoutPage() {
             const createdOrders = [];
             for (const item of items) {
                 const order = await orderApi.createOrder({
-                    product: item.product.id,
+                    product: Number(item.product.id),
                     quantity: item.quantity
                 });
                 createdOrders.push({ ...order, itemPrice: item.product.price * item.quantity });
@@ -80,7 +81,7 @@ export default function CheckoutPage() {
                     amount: String(paymentAmount),
                     provider: paymentMethod,
                     phone_number: phone,
-                    order_id: Number(order.id)
+                    order_ids: [Number(order.id)]
                 });
                 toast.info(`Payment request sent for ${order.product_name || 'Item'}`);
             }
@@ -259,7 +260,7 @@ export default function CheckoutPage() {
                                 {items.map((item) => (
                                     <div key={item.id} className="flex gap-4 items-center">
                                         <div className="h-12 w-12 rounded-xl bg-white/10 p-1">
-                                            <img src={item.product.images} className="h-full w-full object-cover rounded-lg" />
+                                            <img src={formatImageUrl(item.product.images)} className="h-full w-full object-cover rounded-lg" />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-[10px] font-black uppercase tracking-tight truncate">{item.product.name}</h4>
@@ -273,15 +274,15 @@ export default function CheckoutPage() {
                             <div className="space-y-3 pt-6 border-t border-white/10 relative z-10">
                                 <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                     <span>Subtotal</span>
-                                    <span>{subtotal.toLocaleString()} F</span>
+                                    <span>{formatCurrency(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                     <span>Service Fee (2%)</span>
-                                    <span>{serviceFee.toLocaleString()} F</span>
+                                    <span>{formatCurrency(serviceFee)}</span>
                                 </div>
                                 <div className="flex justify-between items-end pt-4 border-t border-white/20">
                                     <span className="text-lg font-black italic uppercase tracking-tighter">Total</span>
-                                    <span className="text-2xl font-black text-primary italic">{total.toLocaleString()} <small className="text-[10px] not-italic opacity-60">FCFA</small></span>
+                                    <span className="text-2xl font-black text-primary italic">{formatCurrency(total)}</span>
                                 </div>
                             </div>
                         </Card>

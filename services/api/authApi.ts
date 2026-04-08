@@ -1,10 +1,12 @@
 /**
  * Authentication API Service
  * Handles user authentication, OTP verification, and password management
+ * 
+ * @docs /api/users/
  */
 
 import apiClient from './apiClient';
-import { AUTH_ENDPOINTS } from './apiConstants';
+import { AUTH_ENDPOINTS, USER_ENDPOINTS } from './apiConstants';
 import { handleAPIError } from './apiErrorHandler';
 
 interface LoginResponse {
@@ -27,6 +29,7 @@ interface RegisterResponse {
 
 interface VerifyOTPResponse {
     detail: string;
+    access?: string;
 }
 
 interface PasswordResetResponse {
@@ -34,18 +37,30 @@ interface PasswordResetResponse {
 }
 
 export const authApi = {
-    login: async (email: string, password: string): Promise<LoginResponse | LoginErrorResponse> => {
+    /**
+     * Login user with email and password
+     */
+    login: async (
+        email: string,
+        password: string
+    ): Promise<LoginResponse | LoginErrorResponse> => {
         try {
-            const response = await apiClient.post<LoginResponse>(AUTH_ENDPOINTS.LOGIN, { email, password });
+            const response = await apiClient.post<LoginResponse>(
+                AUTH_ENDPOINTS.LOGIN,
+                { email, password }
+            );
             return response.data;
         } catch (error: any) {
-            if (error.response?.status === 403) {
+            if (error.response?.status === 403 || error.response?.status === 401) {
                 return error.response.data as LoginErrorResponse;
             }
             throw handleAPIError(error, 'Login');
         }
     },
 
+    /**
+     * Register new user account
+     */
     register: async (userData: {
         email: string;
         username: string;
@@ -54,64 +69,134 @@ export const authApi = {
         location: string;
     }): Promise<RegisterResponse> => {
         try {
-            const response = await apiClient.post<RegisterResponse>(AUTH_ENDPOINTS.REGISTER, userData);
+            const response = await apiClient.post<RegisterResponse>(
+                AUTH_ENDPOINTS.REGISTER,
+                userData
+            );
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Register');
         }
     },
 
+    /**
+     * Verify email with OTP code
+     */
     verifyOtp: async (email: string, code: string): Promise<VerifyOTPResponse> => {
         try {
-            const response = await apiClient.post<VerifyOTPResponse>(AUTH_ENDPOINTS.VERIFY_OTP, { email, code });
+            const response = await apiClient.post<VerifyOTPResponse>(
+                AUTH_ENDPOINTS.VERIFY_OTP,
+                { email, code }
+            );
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Verify OTP');
         }
     },
 
+    /**
+     * Resend OTP code to email
+     */
     resendOtp: async (email: string): Promise<{ message: string }> => {
         try {
-            const response = await apiClient.post<{ message: string }>(AUTH_ENDPOINTS.RESEND_OTP, { email });
+            const response = await apiClient.post<{ message: string }>(
+                AUTH_ENDPOINTS.RESEND_OTP,
+                { email }
+            );
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Resend OTP');
         }
     },
 
+    /**
+     * Request password reset
+     */
     forgotPassword: async (email: string): Promise<{ message: string }> => {
         try {
-            const response = await apiClient.post<{ message: string }>(AUTH_ENDPOINTS.FORGOT_PASSWORD, { email });
+            const response = await apiClient.post<{ message: string }>(
+                AUTH_ENDPOINTS.FORGOT_PASSWORD,
+                { email }
+            );
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Forgot Password');
         }
     },
 
-    resetPassword: async (email: string, code: string, newPassword: string): Promise<PasswordResetResponse> => {
+    /**
+     * Verify reset code and update password
+     */
+    resetPassword: async (
+        email: string,
+        code: string,
+        newPassword: string
+    ): Promise<PasswordResetResponse> => {
         try {
-            const response = await apiClient.post<PasswordResetResponse>(AUTH_ENDPOINTS.RESET_PASSWORD, { email, code, new_password: newPassword });
+            const response = await apiClient.post<PasswordResetResponse>(
+                AUTH_ENDPOINTS.RESET_PASSWORD,
+                { email, code, new_password: newPassword, confirm_password: newPassword }
+            );
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Reset Password');
         }
     },
 
+    /**
+     * Refresh authentication token
+     */
     refreshToken: async (refreshToken: string): Promise<{ access: string }> => {
         try {
-            const response = await apiClient.post<{ access: string }>(AUTH_ENDPOINTS.TOKEN_REFRESH, { refresh: refreshToken });
+            const response = await apiClient.post<{ access: string }>(
+                AUTH_ENDPOINTS.TOKEN_REFRESH,
+                { refresh: refreshToken }
+            );
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Refresh Token');
         }
     },
 
+    /**
+     * Verify authentication token
+     */
     verifyToken: async (token: string): Promise<{ valid: boolean }> => {
         try {
-            await apiClient.post(AUTH_ENDPOINTS.TOKEN_VERIFY, { token });
+            await apiClient.post(
+                AUTH_ENDPOINTS.TOKEN_VERIFY,
+                { token }
+            );
             return { valid: true };
         } catch (error: any) {
             throw handleAPIError(error, 'Verify Token');
+        }
+    },
+
+    /**
+     * Get the currently authenticated user's profile
+     */
+    getMe: async (): Promise<any> => {
+        try {
+            const response = await apiClient.get(USER_ENDPOINTS.ME);
+            return response.data;
+        } catch (error: any) {
+            throw handleAPIError(error, 'Get Me');
+        }
+    },
+
+    /**
+     * Update the authenticated user's profile
+     */
+    updateMe: async (data: FormData | Record<string, any>): Promise<any> => {
+        try {
+            const isFormData = data instanceof FormData;
+            const response = await apiClient.patch(USER_ENDPOINTS.UPDATE_PROFILE, data, {
+                headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+            });
+            return response.data;
+        } catch (error: any) {
+            throw handleAPIError(error, 'Update Profile');
         }
     },
 };

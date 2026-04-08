@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingCart, MessageCircle, User, LayoutGrid } from 'lucide-react';
+import { Home, MessageSquare, User, Package, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
@@ -13,9 +13,9 @@ export function BottomNav() {
 
     const tabs = [
         { name: t('sidebar.home'), icon: Home, href: '/' },
-        { name: t('sidebar.cart'), icon: ShoppingCart, href: '/cart' },
-        { name: t('sidebar.shop'), icon: LayoutGrid, href: '/products' },
-        { name: t('sidebar.messages'), icon: MessageCircle, href: '/messages' },
+        { name: t('sidebar.messages'), icon: MessageSquare, href: '/messages' },
+        { name: t('sidebar.myOrders'), icon: Package, href: '/profile/orders' },
+        { name: t('sidebar.wallet'), icon: Wallet, href: '/profile/wallet' },
         { name: t('sidebar.account'), icon: User, href: '/profile' },
     ];
 

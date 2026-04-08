@@ -23,6 +23,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { formatImageUrl, formatCurrency } from '@/utils/formatters';
+import { cn } from '@/lib/utils';
 
 export default function OrdersPage() {
     const { t } = useTranslation();
@@ -125,7 +127,7 @@ export default function OrdersPage() {
                                             {/* Product Preview */}
                                             <div className="h-24 w-24 md:h-32 md:w-32 rounded-3xl bg-background overflow-hidden shrink-0 border border-border/50">
                                                 {order.product_image ? (
-                                                    <img src={order.product_image} alt={order.shopName} className="h-full w-full object-cover" />
+                                                    <img src={formatImageUrl(order.product_image)} alt={order.shopName} className="h-full w-full object-cover" />
                                                 ) : (
                                                     <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
                                                         <Package size={40} />
@@ -151,7 +153,7 @@ export default function OrdersPage() {
                                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-4 border-t border-border/40">
                                                     <div>
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary block mb-1">Total Amount</span>
-                                                        <span className="text-lg font-black italic text-primary">{(order.totalAmount || order.total || 0).toLocaleString()} <small className="text-[10px] not-italic opacity-70">FCFA</small></span>
+                                                        <span className="text-lg font-black italic text-primary">{formatCurrency(Number(order.totalAmount || order.total || 0))}</span>
                                                     </div>
                                                     <div>
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary block mb-1">Order Date</span>
@@ -191,6 +193,3 @@ export default function OrdersPage() {
     );
 }
 
-function cn(...classes: string[]) {
-    return classes.filter(Boolean).join(' ');
-}

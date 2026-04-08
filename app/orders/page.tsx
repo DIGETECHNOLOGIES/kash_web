@@ -25,7 +25,7 @@ export default function OrdersPage() {
             case 'shipped': return 'primary';
             case 'delivered': return 'success';
             case 'cancelled': return 'error';
-            default: return 'secondary';
+            default: return 'primary';
         }
     };
 

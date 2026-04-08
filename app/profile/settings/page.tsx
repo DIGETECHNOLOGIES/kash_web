@@ -67,14 +67,14 @@ export default function SettingsPage() {
                     sub: mode === 'dark' ? 'Dark Mode' : 'Light Mode',
                     action: toggleTheme
                 },
-                { icon: Bell, label: 'Notifications', sub: 'Configure alerts and updates', href: '/profile/settings/notifications' },
+                { icon: Bell, label: 'Notifications', sub: 'Configure alerts and updates', href: '/profile/notifications' },
             ]
         },
         {
             title: 'Support & About',
             items: [
                 { icon: ShieldCheck, label: 'Privacy Policy', sub: 'Data collection and usage', href: '/privacy' },
-                { icon: Smartphone, label: 'App Version', sub: 'v2.1.0-beta', disabled: true },
+                { icon: Smartphone, label: 'App Version', sub: 'v1.0.0', disabled: true },
             ]
         }
     ];

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -23,6 +23,8 @@ const schema = yup.object().shape({
 export default function LoginPage() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectTo = searchParams.get('redirect') || '/';
     const { setAuth } = useAuthStore();
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -39,14 +41,33 @@ export default function LoginPage() {
             const response = await authApi.login(data.email, data.password);
 
             if ('access' in response) {
-                // Success
-                // In a real app, you'd fetch user profile here too
-                // For now using placeholder user data as we don't have user endpoint detail yet
+                // First, store the token so subsequent API calls are authenticated
                 setAuth(
-                    { id: '1', email: data.email, username: data.email.split('@')[0], phone: '', role: 'buyer', createdAt: '', referralCode: '' },
+                    { id: '', email: data.email, username: data.email.split('@')[0], number: '', role: 'buyer', createdAt: '', referralCode: '' },
                     response.access,
                     response.refresh
                 );
+                // Then fetch the real user profile
+                try {
+                    const profile = await authApi.getMe();
+                    setAuth(
+                        {
+                            id: profile.id || profile.pk || '',
+                            email: profile.email || data.email,
+                            username: profile.username || data.email.split('@')[0],
+                            number: profile.number || profile.phone || '',
+                            role: profile.role || 'buyer',
+                            createdAt: profile.date_joined || '',
+                            referralCode: profile.referral_code || profile.number || '',
+                            image: profile.image || null,
+                            has_shop: profile.has_shop || false,
+                        } as any,
+                        response.access,
+                        response.refresh
+                    );
+                } catch {
+                    // If profile fetch fails, we still have the token – proceed
+                }
                 router.push('/');
             } else {
                 // Check if OTP verification needed

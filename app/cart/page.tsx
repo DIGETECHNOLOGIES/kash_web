@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
+import { formatImageUrl, formatCurrency } from '@/utils/formatters';
 
 export default function CartPage() {
     const { t } = useTranslation();
@@ -25,7 +26,7 @@ export default function CartPage() {
 
     const handleCheckout = () => {
         if (!isAuthenticated) {
-            router.push('/auth/login?redirect=/cart');
+            router.push('/login?redirect=/cart');
             return;
         }
         router.push('/checkout');
@@ -68,7 +69,7 @@ export default function CartPage() {
                                 >
                                     <Card className="p-4 md:p-6 rounded-[2rem] flex flex-col md:flex-row gap-6 items-center shadow-sm hover:shadow-md transition-shadow">
                                         <div className="h-24 w-24 min-w-[6rem] rounded-2xl bg-background overflow-hidden">
-                                            <img src={item.product.images} alt={item.product.name} className="h-full w-full object-cover" />
+                                            <img src={formatImageUrl(item.product.images)} alt={item.product.name} className="h-full w-full object-cover" />
                                         </div>
 
                                         <div className="flex-1 text-center md:text-left">
@@ -77,7 +78,7 @@ export default function CartPage() {
                                             </div>
                                             <h3 className="font-bold text-lg leading-tight mb-2 line-clamp-1">{item.product.name}</h3>
                                             <div className="text-primary font-black italic text-xl">
-                                                {item.product.price.toLocaleString()} FCFA
+                                                {formatCurrency(item.product.price)}
                                             </div>
                                         </div>
 
@@ -121,16 +122,16 @@ export default function CartPage() {
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between text-sm text-slate-400">
                                     <span>Subtotal</span>
-                                    <span className="font-bold text-white">{subtotal.toLocaleString()} FCFA</span>
+                                    <span className="font-bold text-white">{formatCurrency(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm text-slate-400">
                                     <span>Service Fee (2%)</span>
-                                    <span className="font-bold text-white">{serviceFee.toLocaleString()} FCFA</span>
+                                    <span className="font-bold text-white">{formatCurrency(serviceFee)}</span>
                                 </div>
                                 <div className="pt-4 border-t border-white/10 flex justify-between items-center">
                                     <span className="font-black italic uppercase text-lg">Total</span>
                                     <span className="text-2xl font-black text-primary italic">
-                                        {total.toLocaleString()} FCFA
+                                        {formatCurrency(total)}
                                     </span>
                                 </div>
                             </div>

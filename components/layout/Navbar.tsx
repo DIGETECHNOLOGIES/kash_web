@@ -4,20 +4,41 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { ShoppingCart, User, MessageCircle, Menu, Sun, Moon, Search } from 'lucide-react';
+import { ShoppingCart, User, MessageSquare, Menu, Sun, Moon, Search, Home, LayoutGrid, Package, Wallet, Bell } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeStore } from '@/store/themeStore';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { notificationApi } from '@/services/api/notificationApi';
+import { messagingApi } from '@/services/api/messagingApi';
+
+import { Sidebar } from '@/components/common/Sidebar';
 
 export function Navbar() {
     const { t } = useTranslation();
     const { mode, toggleTheme } = useThemeStore();
-    const { isAuthenticated, user } = useAuthStore();
+    const { user, isAuthenticated, logout } = useAuthStore();
     const { items } = useCartStore();
+    const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const { data: notificationData } = useQuery({
+        queryKey: ['unread-notifications'],
+        queryFn: () => notificationApi.getUnreadCount(),
+        enabled: isAuthenticated,
+        refetchInterval: 30000
+    });
+
+    const { data: messageUnreadData } = useQuery({
+        queryKey: ['unread-messages'],
+        queryFn: () => messagingApi.getUnreadSummary(),
+        enabled: isAuthenticated,
+        refetchInterval: 30000
+    });
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,132 +50,96 @@ export function Navbar() {
     const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-border bg-surface/80 backdrop-blur-md">
+        <header className="sticky top-0 z-[1000] w-full border-b border-border bg-surface/80 backdrop-blur-md">
             <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
-                <div className="flex items-center gap-8">
-                    <Link href="/" className="text-2xl font-bold tracking-tight text-primary">
-                        KASH
+                <div className="flex items-center gap-4">
+                    <button
+                        className="rounded-xl p-2.5 hover:bg-background transition-all bg-primary/5 text-primary shadow-inner border border-primary/10"
+                        onClick={() => setIsMenuOpen(true)}
+                    >
+                        <Menu size={22} className="stroke-[2.5px]" />
+                    </button>
+
+                    <Link href="/" className="flex items-center gap-2">
+                        <img src="/logo.png" alt="KASH Logo" className="h-9 w-9 object-contain" />
+                        <span className="text-2xl font-black italic tracking-tighter text-primary">KASH</span>
                     </Link>
 
-                    <nav className="hidden md:flex items-center gap-6">
-                        <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">
+                    <nav className="hidden xl:flex items-center gap-6 ml-4">
+                        <Link href="/products" className="text-xs font-black hover:text-primary transition-colors uppercase italic tracking-widest text-text-secondary">
                             {t('home.products')}
                         </Link>
-                        <Link href="/shops" className="text-sm font-medium hover:text-primary transition-colors">
+                        <Link href="/shops" className="text-xs font-black hover:text-primary transition-colors uppercase italic tracking-widest text-text-secondary">
                             {t('home.shops')}
-                        </Link>
-                        <Link href="/categories" className="text-sm font-medium hover:text-primary transition-colors">
-                            {t('home.categories')}
                         </Link>
                     </nav>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 md:gap-3">
                     <form onSubmit={handleSearch} className="relative hidden lg:block">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
+                        <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
                         <input
                             type="text"
                             placeholder={t('common.search')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="h-10 w-64 rounded-full border border-border bg-background pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-11 w-72 rounded-2xl border border-border bg-background pl-11 pr-4 text-sm font-bold focus:border-primary focus:outline-none transition-all shadow-inner"
                         />
                     </form>
 
                     <button
                         onClick={toggleTheme}
-                        className="rounded-full p-2 hover:bg-background transition-colors"
+                        className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary"
                     >
                         {mode === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
 
-                    <Link href="/messages" className="rounded-full p-2 hover:bg-background transition-colors relative">
-                        <MessageCircle size={20} />
-                        <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                            0
-                        </span>
+                    <Link href="/profile/notifications" className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
+                        <Bell size={18} />
+                        {notificationData?.count > 0 && (
+                            <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
+                                {notificationData.count}
+                            </span>
+                        )}
                     </Link>
 
-                    <Link href="/cart" className="rounded-full p-2 hover:bg-background transition-colors relative">
-                        <ShoppingCart size={20} />
+                    <Link href="/messages" className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
+                        <MessageSquare size={18} />
+                        {(messageUnreadData?.totalUnread || 0) > 0 && (
+                            <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
+                                {messageUnreadData?.totalUnread}
+                            </span>
+                        )}
+                    </Link>
+
+                    <Link href="/cart" className="rounded-xl h-11 w-11 flex items-center justify-center hover:bg-background transition-all text-text-secondary relative">
+                        <ShoppingCart size={18} />
                         {cartCount > 0 && (
-                            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                            <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-black text-white shadow-lg shadow-primary/30">
                                 {cartCount}
                             </span>
                         )}
                     </Link>
 
                     {isAuthenticated ? (
-                        <Link href="/profile" className="flex items-center gap-2 rounded-full border border-border p-1 pr-3 hover:bg-background transition-colors">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        <Link href="/profile" className="hidden sm:flex items-center gap-2 rounded-2xl border border-border bg-background/50 p-1.5 pr-4 hover:border-primary/50 transition-all shadow-sm">
+                            <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center text-white font-black italic shadow-lg shadow-primary/20">
                                 {user?.username?.[0].toUpperCase()}
                             </div>
-                            <span className="text-sm font-medium hidden sm:inline">{user?.username}</span>
+                            <span className="text-[11px] font-black italic uppercase tracking-tighter">{user?.username}</span>
                         </Link>
                     ) : (
                         <Link
                             href="/login"
-                            className="rounded-full bg-primary px-6 py-2 text-sm font-medium text-white hover:bg-primary-dark transition-colors"
+                            className="hidden sm:block rounded-2xl bg-primary px-8 py-3 text-xs font-black italic uppercase tracking-widest text-white hover:bg-primary-dark transition-all shadow-xl shadow-primary/20"
                         >
                             {t('common.login')}
                         </Link>
                     )}
-
-                    <button
-                        className="md:hidden rounded-full p-2 hover:bg-background transition-colors"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    >
-                        <Menu size={20} />
-                    </button>
                 </div>
             </div>
 
-            {/* Mobile Sidebar Menu */}
-            {isMenuOpen && (
-                <div className="fixed inset-0 z-50 md:hidden">
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-                    <div className="absolute right-0 top-0 h-full w-64 bg-surface dark:bg-surface-dark border-l border-border p-6 shadow-2xl animate-in slide-in-from-right duration-300">
-                        <div className="flex justify-between items-center mb-8">
-                            <span className="text-xl font-bold text-primary">Menu</span>
-                            <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-background rounded-full">
-                                <Menu size={20} />
-                            </button>
-                        </div>
-
-                        <nav className="flex flex-col gap-6">
-                            <Link href="/" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                                {t('common.home')}
-                            </Link>
-                            <Link href="/products" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                                {t('home.products')}
-                            </Link>
-                            <Link href="/shops" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                                {t('home.shops')}
-                            </Link>
-                            <Link href="/categories" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                                {t('home.categories')}
-                            </Link>
-
-                            <div className="h-px bg-border my-2" />
-
-                            {isAuthenticated ? (
-                                <>
-                                    <Link href="/profile" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                                        {t('common.profile')}
-                                    </Link>
-                                    <Link href="/orders" className="text-lg font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                                        {t('common.orders')}
-                                    </Link>
-                                </>
-                            ) : (
-                                <Link href="/login" className="text-lg font-medium text-primary hover:text-primary-dark transition-colors" onClick={() => setIsMenuOpen(false)}>
-                                    {t('common.login')}
-                                </Link>
-                            )}
-                        </nav>
-                    </div>
-                </div>
-            )}
+            <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
         </header>
     );
 }

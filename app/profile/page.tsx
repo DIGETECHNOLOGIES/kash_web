@@ -23,11 +23,27 @@ import {
     Share2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { walletApi } from '@/services/api/walletApi';
+import { orderApi } from '@/services/api/orderApi';
+import { formatCurrency } from '@/utils/formatters';
 
 export default function ProfilePage() {
     const { t } = useTranslation();
     const router = useRouter();
     const { user, logout, isAuthenticated } = useAuthStore();
+
+    const { data: wallet } = useQuery({
+        queryKey: ['wallet-me'],
+        queryFn: () => walletApi.getBalance(),
+        enabled: isAuthenticated
+    });
+
+    const { data: orders } = useQuery({
+        queryKey: ['orders-me'],
+        queryFn: () => orderApi.listOrders(1, 1),
+        enabled: isAuthenticated
+    });
 
     if (!isAuthenticated) {
         if (typeof window !== 'undefined') {
@@ -89,10 +105,10 @@ export default function ProfilePage() {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
                     {[
-                        { label: 'Total Orders', value: '12', icon: ShoppingBag, color: 'text-primary' },
-                        { label: 'Wallet Balance', value: '25,000 F', icon: CreditCard, color: 'text-info' },
-                        { label: 'Referrals', value: '8', icon: Share2, color: 'text-success' },
-                        { label: 'Unread', value: '2', icon: Bell, color: 'text-error' },
+                        { label: 'Total Orders', value: orders?.count || '0', icon: ShoppingBag, color: 'text-primary' },
+                        { label: 'Wallet Balance', value: formatCurrency(wallet?.availableBalance || 0), icon: CreditCard, color: 'text-info' },
+                        { label: 'Referrals', value: wallet?.totalReferrals || '0', icon: Share2, color: 'text-success' },
+                        { label: 'Unread', value: '0', icon: Bell, color: 'text-error' },
                     ].map((stat, i) => (
                         <Card key={i} className="flex flex-col items-center justify-center p-6 rounded-[2rem] border-border/40 bg-surface shadow-sm">
                             <stat.icon className={`${stat.color} mb-3`} size={24} />

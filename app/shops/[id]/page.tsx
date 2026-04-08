@@ -15,6 +15,8 @@ import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { Store, MapPin, ShieldCheck, MessageCircle, Share2, Star, Calendar, ChevronLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatImageUrl } from '@/utils/formatters';
+import { toast } from 'sonner';
 
 import { ReviewSection } from '@/components/common/ReviewSection';
 
@@ -25,7 +27,7 @@ export default function ShopDetailsPage() {
 
     const { data: shop, isLoading: isLoadingShop } = useQuery({
         queryKey: ['shop', slug],
-        queryFn: () => shopApi.getShop(slug as string),
+        queryFn: () => shopApi.getShopById(slug as string),
     });
 
     const { data: productsData, isLoading: isLoadingProducts } = useQuery({
@@ -38,17 +40,15 @@ export default function ShopDetailsPage() {
 
     const handleContact = async () => {
         if (!isAuthenticated) {
-            router.push(`/auth/login?redirect=/shops/${slug}`);
+            router.push(`/login?redirect=/shops/${slug}`);
             return;
         }
         try {
-            const convo = await messagingApi.startConversation({
-                shop_slug: slug as string,
-                role: 'BUYER'
-            });
+            const convo = await messagingApi.startConversation(String(shop?.id), 'BUYER', true);
             router.push(`/messages?convo=${convo.id}`);
         } catch (error) {
             console.error('Failed to start conversation', error);
+            toast.error('Could not start conversation');
         }
     };
 
@@ -86,31 +86,42 @@ export default function ShopDetailsPage() {
                 </div>
 
                 <div className="px-6 md:px-12 -translate-y-12">
-                    <div className="flex flex-col md:flex-row items-end gap-6 mb-6">
-                        <div className="h-32 w-32 md:h-40 md:w-40 rounded-[2.5rem] bg-surface border-8 border-background shadow-2xl flex items-center justify-center text-primary relative overflow-hidden">
-                            <Store size={64} />
+                    <div className="flex flex-col md:flex-row items-end gap-6 mb-8">
+                        <div className="h-32 w-32 md:h-48 md:w-48 rounded-[2.5rem] bg-surface border-8 border-background shadow-2xl flex items-center justify-center text-primary relative overflow-hidden shrink-0">
+                            {shop?.image ? (
+                                <img src={formatImageUrl(shop.image)} alt={shop.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                    <span className="text-5xl md:text-8xl font-black italic uppercase text-primary leading-none">
+                                        {shop?.name?.charAt(0) || 'K'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                         <div className="flex-1 mb-2">
-                            <div className="flex items-center gap-3 mb-2">
-                                <h1 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter">{shop?.name}</h1>
-                                {shop?.verified && <ShieldCheck size={24} className="text-primary" />}
+                            <div className="flex items-center gap-4 mb-3">
+                                <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none">{shop?.name}</h1>
+                                {shop?.verified && <ShieldCheck size={32} className="text-primary" />}
                             </div>
-                            <div className="flex flex-wrap gap-4 text-sm font-bold text-text-secondary">
-                                <span className="flex items-center gap-1.5"><MapPin size={16} className="text-primary" /> {shop?.location}, {shop?.region}</span>
-                                <span className="flex items-center gap-1.5"><Calendar size={16} className="text-primary" /> Joined {shop?.createdAt ? new Date(shop.createdAt).getFullYear() : '2024'}</span>
-                                <span className="flex items-center gap-1.5 text-warning"><Star size={16} className="fill-warning" /> {shop?.average_rating?.toFixed(1) || '0.0'} ({shop?.review_count || 0} reviews)</span>
+                            <div className="flex flex-wrap gap-6 text-base font-black italic uppercase tracking-widest text-text-secondary">
+                                <span className="flex items-center gap-2"><MapPin size={20} className="text-primary" /> {shop?.location}, {shop?.region}</span>
+                                <span className="flex items-center gap-2"><Calendar size={20} className="text-primary" /> Joined {shop?.createdAt ? new Date(shop.createdAt).getFullYear() : '2024'}</span>
+                                <span className="flex items-center gap-2 text-warning"><Star size={20} className="fill-warning" /> {shop?.average_rating?.toFixed(1) || '0.0'} ({shop?.review_count || 0} reviews)</span>
                             </div>
                         </div>
                         <div className="w-full md:w-auto mb-2">
-                            <Button size="lg" className="w-full md:w-auto h-14 px-8 rounded-2xl shadow-xl shadow-primary/20" onClick={handleContact}>
-                                <MessageCircle size={20} className="mr-2" /> Contact Merchant
+                            <Button size="lg" className="w-full md:w-auto h-16 px-10 rounded-2xl shadow-2xl shadow-primary/20 font-black uppercase italic tracking-widest text-lg" onClick={handleContact}>
+                                <MessageCircle size={24} className="mr-2" /> Contact Merchant
                             </Button>
                         </div>
                     </div>
 
-                    <Card className="p-8 rounded-[2.5rem] border-border/40 bg-surface/50 backdrop-blur-sm">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-3 italic">About the Merchant</h3>
-                        <p className="text-text-secondary leading-relaxed max-w-3xl">
+                    <Card className="p-10 rounded-[3rem] border-none bg-surface/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-4 italic flex items-center gap-2">
+                            <Store size={16} className="text-primary" /> About the Merchant
+                        </h3>
+                        <p className="text-text-secondary leading-relaxed max-w-4xl text-lg font-medium italic">
                             {shop?.description || `Welcome to ${shop?.name}. We are verified merchants on KASH specializing in high-quality products with a focus on customer satisfaction and reliable delivery across ${shop?.region}.`}
                         </p>
                     </Card>

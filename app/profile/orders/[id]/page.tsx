@@ -41,7 +41,7 @@ export default function OrderDetailPage() {
     });
 
     const confirmMutation = useMutation({
-        mutationFn: (code: string) => orderApi.confirmDelivery(id as string, code),
+        mutationFn: (code: string) => orderApi.confirmDelivery(id as string, { code }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['order', id] });
             setIsConfirmOpen(false);
@@ -165,7 +165,7 @@ export default function OrderDetailPage() {
                             <div className="mt-10 pt-8 border-t border-border/40 space-y-4">
                                 <div className="flex justify-between text-sm font-bold text-text-secondary uppercase tracking-widest">
                                     <span>Subtotal</span>
-                                    <span>{order.totalAmount.toLocaleString()} F</span>
+                                    <span>{Number(order.totalAmount || 0).toLocaleString()} F</span>
                                 </div>
                                 <div className="flex justify-between text-sm font-bold text-text-secondary uppercase tracking-widest">
                                     <span>Delivery Fee</span>
@@ -173,7 +173,7 @@ export default function OrderDetailPage() {
                                 </div>
                                 <div className="flex justify-between items-end pt-4 border-t border-dashed border-border/60">
                                     <span className="text-lg font-black italic uppercase tracking-tighter">Total Paid</span>
-                                    <span className="text-3xl font-black text-primary italic">{(order.totalAmount + 5000).toLocaleString()} <small className="text-xs not-italic opacity-60">FCFA</small></span>
+                                    <span className="text-3xl font-black text-primary italic">{(Number(order.totalAmount || 0) + 5000).toLocaleString()} <small className="text-xs not-italic opacity-60">FCFA</small></span>
                                 </div>
                             </div>
                         </Card>

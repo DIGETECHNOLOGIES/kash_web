@@ -1,0 +1,23 @@
+{
+    "name": "KASH Marketplace",
+    "short_name": "KASH",
+    "description": "Professional marketplace for elite sellers and buyers.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#00d084",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "1024x1024",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/logo.png",
+            "sizes": "1024x1024",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

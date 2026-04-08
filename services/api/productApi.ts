@@ -1,14 +1,22 @@
+/**
+ * Product API Service
+ * Handles product listing, creation, updates, deletion, and resales
+ * 
+ * @docs /api/products/
+ */
 
 import apiClient from './apiClient';
-import { PRODUCT_ENDPOINTS } from './apiConstants';
+import { PRODUCT_ENDPOINTS, PAGINATION } from './apiConstants';
 import { handleAPIError } from './apiErrorHandler';
 import { Product } from '@/types';
 
+/**
+ * Maps backend product response to frontend Product type
+ */
 const mapProduct = (p: any): Product => ({
     id: String(p.id),
-    slug: p.slug || String(p.id),
     shopId: String(p.shop),
-    shopSlug: p.shop_slug || String(p.shop),
+    shopOwnerId: String(p.shop_owner_id),
     shopName: p.shop_name || 'Kash Shop',
     name: p.name,
     description: p.description || '',
@@ -17,7 +25,7 @@ const mapProduct = (p: any): Product => ({
     previousPrice: p.previous_price ? parseFloat(p.previous_price) : undefined,
     discount: p.previous_price ? Math.round(((parseFloat(p.previous_price) - parseFloat(p.current_price)) / parseFloat(p.previous_price)) * 100) : undefined,
     minQuantity: p.min_quantity || 1,
-    quantity: p.stock_quantity || 0,
+    quantity: p.quantity || 0,
     location: p.shop_location || p.location || 'Cameroon',
     category: p.category_name || 'General',
     allowReselling: !p.is_resale,
@@ -25,9 +33,30 @@ const mapProduct = (p: any): Product => ({
     updatedAt: p.updated_at,
     average_rating: p.average_rating,
     review_count: p.review_count,
+    totalSales: p.total_sales,
+    uniqueViews: p.unique_views,
+    additional_images: p.additional_images,
+    shop_image: p.shop_image,
 });
 
-export interface PaginatedResponse<T> {
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    created_at: string;
+    updated_at: string;
+}
+
+interface CreateProductData {
+    name: string;
+    description: string;
+    current_price: string;
+    previous_price?: string;
+    category: number;
+    images: File | string;
+}
+
+interface PaginatedResponse<T> {
     count: number;
     next?: string;
     previous?: string;
@@ -35,10 +64,31 @@ export interface PaginatedResponse<T> {
 }
 
 export const productApi = {
-    listProducts: async (filters: any = {}, page: number = 1, pageSize: number = 20): Promise<PaginatedResponse<Product>> => {
+    /**
+     * List all products with optional filters
+     */
+    listProducts: async (
+        filters: {
+            category?: number | string;
+            shop?: number | string;
+            is_resale?: boolean;
+            search?: string;
+            page_size?: number;
+        } = {},
+        page: number = PAGINATION.DEFAULT_PAGE,
+        pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE
+    ): Promise<PaginatedResponse<Product>> => {
         try {
-            const params = { ...filters, page, page_size: pageSize };
-            const response = await apiClient.get<PaginatedResponse<Product>>(PRODUCT_ENDPOINTS.LIST_PRODUCTS, { params });
+            const params = {
+                ...filters,
+                page,
+                page_size: filters.page_size || pageSize,
+            };
+
+            const response = await apiClient.get<PaginatedResponse<any>>(
+                PRODUCT_ENDPOINTS.LIST_PRODUCTS,
+                { params }
+            );
             return {
                 ...response.data,
                 results: response.data.results.map(mapProduct),
@@ -48,61 +98,166 @@ export const productApi = {
         }
     },
 
-    getProduct: async (slug: string | number): Promise<Product> => {
-        try {
-            const response = await apiClient.get<any>(PRODUCT_ENDPOINTS.GET_PRODUCT_DETAIL(slug));
-            return mapProduct(response.data);
-        } catch (error: any) {
-            throw handleAPIError(error, 'Get Product Details');
-        }
-    },
-
-    listCategories: async (): Promise<any> => {
-        try {
-            const response = await apiClient.get<any>(PRODUCT_ENDPOINTS.LIST_CATEGORIES);
-            return response.data;
-        } catch (error: any) {
-            throw handleAPIError(error, 'List Categories');
-        }
-    },
-
-    createProduct: async (productData: any): Promise<Product> => {
+    /**
+     * Create a new product
+     */
+    createProduct: async (productData: CreateProductData): Promise<Product> => {
         try {
             const formData = new FormData();
-            Object.entries(productData).forEach(([key, value]) => {
-                if (value) formData.append(key, value as any);
-            });
+            formData.append('name', productData.name);
+            formData.append('description', productData.description);
+            formData.append('current_price', productData.current_price);
 
-            const response = await apiClient.post<any>(PRODUCT_ENDPOINTS.CREATE_PRODUCT, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            if (productData.previous_price) {
+                formData.append('previous_price', productData.previous_price);
+            }
+
+            formData.append('category', String(productData.category));
+            if (productData.images instanceof File) {
+                formData.append('images', productData.images);
+            }
+
+            const response = await apiClient.post<any>(
+                PRODUCT_ENDPOINTS.CREATE_PRODUCT,
+                formData,
+                {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                }
+            );
             return mapProduct(response.data);
         } catch (error: any) {
             throw handleAPIError(error, 'Create Product');
         }
     },
 
-    updateProduct: async (productId: string | number, productData: any): Promise<Product> => {
+    /**
+     * Get product details
+     */
+    getProductById: async (productId: string | number): Promise<Product> => {
+        try {
+            const response = await apiClient.get<any>(
+                PRODUCT_ENDPOINTS.GET_PRODUCT_DETAIL(productId)
+            );
+            return mapProduct(response.data);
+        } catch (error: any) {
+            throw handleAPIError(error, 'Get Product Details');
+        }
+    },
+
+    /**
+     * Update product information
+     */
+    updateProduct: async (
+        productId: string | number,
+        productData: Partial<CreateProductData>
+    ): Promise<Product> => {
         try {
             const formData = new FormData();
+
             Object.entries(productData).forEach(([key, value]) => {
-                if (value) formData.append(key, value as any);
+                if (value instanceof File) {
+                    formData.append(key, value);
+                } else if (value !== undefined) {
+                    formData.append(key, String(value));
+                }
             });
 
-            const response = await apiClient.patch<any>(PRODUCT_ENDPOINTS.UPDATE_PRODUCT(productId), formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            const response = await apiClient.patch<any>(
+                PRODUCT_ENDPOINTS.UPDATE_PRODUCT(productId),
+                formData,
+                {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                }
+            );
             return mapProduct(response.data);
         } catch (error: any) {
             throw handleAPIError(error, 'Update Product');
         }
     },
 
+    /**
+     * Delete a product
+     */
     deleteProduct: async (productId: string | number): Promise<void> => {
         try {
             await apiClient.delete(PRODUCT_ENDPOINTS.DELETE_PRODUCT(productId));
         } catch (error: any) {
             throw handleAPIError(error, 'Delete Product');
         }
-    }
+    },
+
+    /**
+     * Create a resale of an existing product
+     */
+    resellProduct: async (
+        productId: string | number,
+        resaleData: {
+            current_price: string;
+            previous_price?: string;
+            description: string;
+        }
+    ): Promise<Product> => {
+        try {
+            const response = await apiClient.post<any>(
+                PRODUCT_ENDPOINTS.RESELL_PRODUCT(productId),
+                resaleData
+            );
+            return mapProduct(response.data);
+        } catch (error: any) {
+            throw handleAPIError(error, 'Resell Product');
+        }
+    },
+
+    /**
+     * List all product categories
+     */
+    listCategories: async (
+        page: number = PAGINATION.DEFAULT_PAGE,
+        pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE
+    ): Promise<PaginatedResponse<Category>> => {
+        try {
+            const response = await apiClient.get<PaginatedResponse<Category>>(
+                PRODUCT_ENDPOINTS.LIST_CATEGORIES,
+                {
+                    params: { page, page_size: pageSize },
+                }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw handleAPIError(error, 'List Categories');
+        }
+    },
+
+    /**
+     * Record a unique view for a product
+     */
+    recordView: async (productId: string | number): Promise<void> => {
+        try {
+            await apiClient.post(
+                `${PRODUCT_ENDPOINTS.GET_PRODUCT_DETAIL(productId)}record_view/`
+            );
+        } catch (error: any) {
+            console.warn('Failed to record product view:', error);
+        }
+    },
+
+    /**
+     * Search products by query
+     */
+    searchProducts: async (query: string): Promise<PaginatedResponse<Product>> => {
+        try {
+            const response = await apiClient.get<PaginatedResponse<any>>(
+                PRODUCT_ENDPOINTS.LIST_PRODUCTS,
+                {
+                    params: { search: query },
+                }
+            );
+            return {
+                ...response.data,
+                results: response.data.results.map(mapProduct),
+            };
+        } catch (error: any) {
+            throw handleAPIError(error, 'Search Products');
+        }
+    },
 };

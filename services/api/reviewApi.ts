@@ -1,6 +1,5 @@
 import apiClient from './apiClient';
 import { handleAPIError } from './apiErrorHandler';
-import { PaginatedResponse } from '@/types';
 
 export interface Review {
     id: string | number;
@@ -15,9 +14,9 @@ export interface Review {
 }
 
 export const reviewApi = {
-    listReviews: async (params: { product?: string | number, shop?: string | number, page?: number }): Promise<PaginatedResponse<Review>> => {
+    listReviews: async (params: { product?: string | number, shop?: string | number, page?: number }) => {
         try {
-            const response = await apiClient.get<PaginatedResponse<Review>>('/api/reviews/reviews/', {
+            const response = await apiClient.get('/api/reviews/reviews/', {
                 params: { ...params, page_size: 10 },
             });
             return response.data;
@@ -26,9 +25,9 @@ export const reviewApi = {
         }
     },
 
-    createReview: async (reviewData: { product?: string | number, shop?: string | number, rating: number, comment: string }): Promise<Review> => {
+    createReview: async (reviewData: { product?: string | number, shop?: string | number, rating: number, comment: string }) => {
         try {
-            const response = await apiClient.post<Review>('/api/reviews/reviews/', reviewData);
+            const response = await apiClient.post('/api/reviews/reviews/', reviewData);
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Create Review');

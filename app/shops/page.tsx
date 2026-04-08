@@ -11,6 +11,7 @@ import { Badge } from '@/components/common/Badge';
 import { Search, Store, MapPin, Star, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { formatImageUrl } from '@/utils/formatters';
 
 export default function ShopsPage() {
     const { t } = useTranslation();
@@ -65,8 +66,16 @@ export default function ShopsPage() {
                                         {/* Placeholder for banner */}
                                         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary opacity-50" />
                                         <div className="absolute bottom-0 left-6 translate-y-1/2">
-                                            <div className="h-20 w-20 rounded-2xl bg-surface border-4 border-surface shadow-lg overflow-hidden flex items-center justify-center text-primary">
-                                                <Store size={32} />
+                                            <div className="h-20 w-20 rounded-2xl bg-surface border-4 border-surface shadow-2xl overflow-hidden flex items-center justify-center relative">
+                                                {shop.image ? (
+                                                    <img src={formatImageUrl(shop.image)} alt={shop.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                                                        <span className="text-4xl font-black italic uppercase text-primary leading-none">
+                                                            {shop.name?.charAt(0) || 'K'}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -74,7 +83,7 @@ export default function ShopsPage() {
                                     <div className="pt-12 p-6 flex flex-col flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                             <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{shop.name}</h3>
-                                            {shop.is_verified && (
+                                            {shop.verified && (
                                                 <ShieldCheck size={18} className="text-primary" />
                                             )}
                                         </div>

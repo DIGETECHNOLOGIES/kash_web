@@ -15,6 +15,8 @@ import { Card } from '@/components/common/Card';
 import { motion } from 'framer-motion';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
+import { formatImageUrl, formatCurrency } from '@/utils/formatters';
+import { toast } from 'sonner';
 
 import { ReviewSection } from '@/components/common/ReviewSection';
 
@@ -28,12 +30,12 @@ export default function ProductDetailsPage() {
 
     const { data: product, isLoading } = useQuery({
         queryKey: ['product', slug],
-        queryFn: () => productApi.getProduct(slug as string),
+        queryFn: () => productApi.getProductById(slug as string),
     });
 
     const handleAddToCart = () => {
         if (!isAuthenticated) {
-            router.push(`/auth/login?redirect=/products/${slug}`);
+            router.push(`/login?redirect=/products/${slug}`);
             return;
         }
         if (product) {
@@ -43,7 +45,7 @@ export default function ProductDetailsPage() {
 
     const handleBuyNow = () => {
         if (!isAuthenticated) {
-            router.push(`/auth/login?redirect=/products/${slug}`);
+            router.push(`/login?redirect=/products/${slug}`);
             return;
         }
         if (product) {
@@ -53,19 +55,17 @@ export default function ProductDetailsPage() {
 
     const handleContactMerchant = async () => {
         if (!isAuthenticated) {
-            router.push(`/auth/login?redirect=/products/${slug}`);
+            router.push(`/login?redirect=/products/${slug}`);
             return;
         }
         if (!product) return;
         try {
-            // Initiate a user_shop conversation
-            const convo = await messagingApi.startConversation({
-                shop_slug: product.shopSlug,
-                role: 'BUYER'
-            });
+            // Initiate a user_shop conversation using shopId
+            const convo = await messagingApi.startConversation(String(product.shopId), 'BUYER', true);
             router.push(`/messages?convo=${convo.id}`);
         } catch (error) {
             console.error('Failed to contact merchant', error);
+            toast.error('Could not start conversation');
         }
     };
 
@@ -115,7 +115,7 @@ export default function ProductDetailsPage() {
                     className="relative aspect-square rounded-[2.5rem] overflow-hidden bg-surface border border-border group"
                 >
                     <img
-                        src={product.images || 'https://via.placeholder.com/800'}
+                        src={formatImageUrl(product.images)}
                         alt={product.name}
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
@@ -166,7 +166,7 @@ export default function ProductDetailsPage() {
                             </div>
                             <div>
                                 <p className="text-xs text-text-secondary leading-none mb-1">Sold by</p>
-                                <Link href={`/shops/${product.shopSlug}`} className="text-sm font-bold hover:text-primary transition-colors">
+                                <Link href={`/shops/${product.shopId}`} className="text-sm font-bold hover:text-primary transition-colors">
                                     {product.shopName}
                                 </Link>
                             </div>
@@ -179,11 +179,11 @@ export default function ProductDetailsPage() {
 
                     <div className="flex items-baseline gap-4 mb-8 p-6 rounded-3xl bg-primary/5 border border-primary/10">
                         <span className="text-4xl font-black text-primary italic">
-                            {product.price.toLocaleString()} <small className="text-sm not-italic font-bold opacity-70">FCFA</small>
+                            {formatCurrency(product.price)}
                         </span>
                         {product.previousPrice && (
                             <span className="text-lg text-text-secondary line-through font-medium">
-                                {product.previousPrice.toLocaleString()} FCFA
+                                {formatCurrency(product.previousPrice)}
                             </span>
                         )}
                     </div>
@@ -238,14 +238,14 @@ export default function ProductDetailsPage() {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                             <Button
                                 size="lg"
                                 className="rounded-[1.25rem] h-16 text-md font-black shadow-lg shadow-primary/20"
                                 onClick={handleAddToCart}
                             >
                                 <ShoppingCart className="mr-2 h-5 w-5" />
-                                {t('product.addToCart')}
+                                here {t('product.addToCart')}
                             </Button>
                             <Button
                                 variant="secondary"

@@ -20,7 +20,7 @@ export default function BuyPage() {
 
     const { data: product, isLoading } = useQuery({
         queryKey: ['product', slug],
-        queryFn: () => productApi.getProduct(slug as string),
+        queryFn: () => productApi.getProductById(slug as string),
     });
 
     const handlePurchase = async () => {

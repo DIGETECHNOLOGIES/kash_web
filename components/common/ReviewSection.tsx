@@ -8,6 +8,7 @@ import { Button } from './Button';
 import { Star, MessageCircle, User as UserIcon } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
+import { formatImageUrl } from '@/utils/formatters';
 
 interface ReviewSectionProps {
     productId?: string | number;
@@ -113,12 +114,12 @@ export function ReviewSection({ productId, shopId }: ReviewSectionProps) {
                         No reviews yet. Be the first to share your experience!
                     </div>
                 ) : (
-                    reviewsData?.results?.map((review) => (
+                    reviewsData?.results?.map((review: Review) => (
                         <Card key={review.id} className="p-6 rounded-3xl border-border/40 hover:border-primary/20 transition-all shadow-sm">
                             <div className="flex items-start gap-4">
                                 <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center text-primary overflow-hidden border border-primary/10">
                                     {review.user_image ? (
-                                        <img src={review.user_image} alt={review.user_name} className="w-full h-full object-cover" />
+                                        <img src={formatImageUrl(review.user_image)} alt={review.user_name} className="w-full h-full object-cover" />
                                     ) : (
                                         <UserIcon size={20} />
                                     )}

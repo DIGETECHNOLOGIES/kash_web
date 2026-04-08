@@ -11,13 +11,18 @@ import { Badge } from '@/components/common/Badge';
 import { Wallet, ArrowUpRight, ArrowDownLeft, History, DollarSign, ShieldCheck, Info, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
+import { format } from 'date-fns';
 
 export default function WalletPage() {
+    const { user } = useAuthStore();
     const { t } = useTranslation();
     const router = useRouter();
     const queryClient = useQueryClient();
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [withdrawAmount, setWithdrawAmount] = useState('');
+    const [accountNumber, setAccountNumber] = useState(user?.number || '');
+    const [accountName, setAccountName] = useState(user?.username || '');
 
     const { data: balance, isLoading: isLoadingBalance } = useQuery({
         queryKey: ['wallet-balance'],
@@ -30,7 +35,8 @@ export default function WalletPage() {
     });
 
     const withdrawMutation = useMutation({
-        mutationFn: (amount: string) => walletApi.requestWithdrawal(amount),
+        mutationFn: ({ amount, accountNumber, accountName }: { amount: string, accountNumber: string, accountName: string }) =>
+            walletApi.requestWithdrawal(amount, accountNumber, accountName),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['wallet-balance'] });
             queryClient.invalidateQueries({ queryKey: ['wallet-history'] });
@@ -41,8 +47,8 @@ export default function WalletPage() {
 
     const handleWithdraw = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!withdrawAmount) return;
-        withdrawMutation.mutate(withdrawAmount);
+        if (!withdrawAmount || !accountNumber || !accountName) return;
+        withdrawMutation.mutate({ amount: withdrawAmount, accountNumber, accountName });
     };
 
     return (
@@ -68,7 +74,7 @@ export default function WalletPage() {
                         <div className="relative z-10">
                             <span className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2 block italic">Available Funds</span>
                             <div className="text-5xl font-black italic tracking-tighter mb-8">
-                                {isLoadingBalance ? '---' : Number(balance?.available_balance || 0).toLocaleString()} <small className="text-xl not-italic font-bold opacity-50">FCFA</small>
+                                {isLoadingBalance ? '---' : (balance?.availableBalance || balance?.available_balance || 0).toLocaleString()} <small className="text-xl not-italic font-bold opacity-50">FCFA</small>
                             </div>
 
                             <div className="flex gap-4">
@@ -94,7 +100,7 @@ export default function WalletPage() {
                             <div>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1 block">Pending Clearance</span>
                                 <span className="text-xl font-black italic">
-                                    {isLoadingBalance ? '---' : Number(balance?.pending_balance || 0).toLocaleString()} <small className="text-xs not-italic opacity-50 font-bold">FCFA</small>
+                                    {isLoadingBalance ? '---' : (balance?.pendingBalance || balance?.pending_balance || 0).toLocaleString()} <small className="text-xs not-italic opacity-50 font-bold">FCFA</small>
                                 </span>
                             </div>
                         </Card>
@@ -105,7 +111,7 @@ export default function WalletPage() {
                             <div>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1 block">Referral Earnings</span>
                                 <span className="text-xl font-black italic">
-                                    {isLoadingBalance ? '---' : Number(balance?.referral_earnings || 0).toLocaleString()} <small className="text-xs not-italic opacity-50 font-bold">FCFA</small>
+                                    {isLoadingBalance ? '---' : (balance?.referralEarnings || 0).toLocaleString()} <small className="text-xs not-italic opacity-50 font-bold">FCFA</small>
                                 </span>
                             </div>
                         </Card>
@@ -170,19 +176,43 @@ export default function WalletPage() {
                                         <ArrowUpRight size={40} />
                                     </div>
                                     <h2 className="text-2xl font-black italic uppercase tracking-tighter">Withdraw Funds</h2>
-                                    <p className="text-xs font-bold text-text-secondary uppercase tracking-widest mt-1">Available: {Number(balance?.available_balance || 0).toLocaleString()} F</p>
+                                    <p className="text-xs font-bold text-text-secondary uppercase tracking-widest mt-1">Available: {(balance?.availableBalance || balance?.available_balance || 0).toLocaleString()} F</p>
                                 </div>
 
                                 <form onSubmit={handleWithdraw} className="space-y-8">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Enter Amount (FCFA)</label>
-                                        <input
-                                            type="number"
-                                            value={withdrawAmount}
-                                            onChange={(e) => setWithdrawAmount(e.target.value)}
-                                            placeholder="Min. 1,000 F"
-                                            className="w-full h-16 rounded-2xl bg-background border border-border px-8 text-2xl font-black italic text-primary focus:border-primary focus:outline-none transition-all"
-                                        />
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Enter Amount (FCFA)</label>
+                                            <input
+                                                type="number"
+                                                value={withdrawAmount}
+                                                onChange={(e) => setWithdrawAmount(e.target.value)}
+                                                placeholder="Min. 1,000 F"
+                                                className="w-full h-16 rounded-2xl bg-background border border-border px-8 text-2xl font-black italic text-primary focus:border-primary focus:outline-none transition-all"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Account Number (MOMO/ORANGE)</label>
+                                            <input
+                                                type="tel"
+                                                value={accountNumber}
+                                                onChange={(e) => setAccountNumber(e.target.value)}
+                                                placeholder="6xx xxx xxx"
+                                                className="w-full h-14 rounded-2xl bg-background border border-border px-6 text-sm font-bold italic focus:border-primary focus:outline-none transition-all"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Account Name</label>
+                                            <input
+                                                type="text"
+                                                value={accountName}
+                                                onChange={(e) => setAccountName(e.target.value)}
+                                                placeholder="Full Name on Account"
+                                                className="w-full h-14 rounded-2xl bg-background border border-border px-6 text-sm font-bold italic focus:border-primary focus:outline-none transition-all"
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="bg-primary/5 rounded-2xl p-4 space-y-2">
