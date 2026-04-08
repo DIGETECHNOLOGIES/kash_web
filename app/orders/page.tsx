@@ -41,8 +41,8 @@ export default function OrdersPage() {
     return (
         <MainLayout>
             <div className="max-w-5xl mx-auto py-12">
-                <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">My <span className="text-primary">Orders</span></h1>
-                <p className="text-text-secondary mb-12 font-medium">Track and manage your professional purchases</p>
+                <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">{t('order.title').split(' ')[0]} <span className="text-primary">{t('order.title').split(' ')[1]}</span></h1>
+                <p className="text-text-secondary mb-12 font-medium">{t('order.trackManage')}</p>
 
                 {isLoading ? (
                     <div className="space-y-4">
@@ -51,10 +51,10 @@ export default function OrdersPage() {
                 ) : ordersData?.results?.length === 0 ? (
                     <Card className="py-24 text-center rounded-[3rem] border-dashed opacity-50">
                         <Package size={48} className="mx-auto mb-4 text-text-secondary" />
-                        <h3 className="text-xl font-bold uppercase italic tracking-tighter">No orders found</h3>
-                        <p className="text-sm text-text-secondary mt-2">Start shopping to see your orders here.</p>
+                        <h3 className="text-xl font-bold uppercase italic tracking-tighter">{t('order.notFound')}</h3>
+                        <p className="text-sm text-text-secondary mt-2">{t('order.startShoppingOrders')}</p>
                         <Link href="/products">
-                            <Button className="mt-8 rounded-2xl">Browse Marketplace</Button>
+                            <Button className="mt-8 rounded-2xl">{t('order.browseMarketplace')}</Button>
                         </Link>
                     </Card>
                 ) : (
@@ -98,15 +98,15 @@ export default function OrdersPage() {
                                 <div className="bg-background/50 border-t border-border/40 p-4 md:px-8 flex flex-wrap gap-4 items-center justify-between">
                                     <div className="flex gap-4">
                                         <Button variant="ghost" size="sm" className="h-10 text-xs font-bold gap-2 text-text-secondary hover:text-primary px-2" onClick={() => {/* Contact Logic */ }}>
-                                            <MessageCircle size={14} /> Message Shop
+                                            <MessageCircle size={14} /> {t('order.messageShop')}
                                         </Button>
                                         <Button variant="ghost" size="sm" className="h-10 text-xs font-bold gap-2 text-text-secondary hover:text-error px-2" onClick={() => {/* Refund Logic */ }}>
-                                            <RefreshCw size={14} /> Request Refund
+                                            <RefreshCw size={14} /> {t('order.requestRefund')}
                                         </Button>
                                     </div>
                                     <Link href={`/orders/${order.id}`}>
                                         <Button variant="outline" size="sm" className="h-10 rounded-xl px-6 gap-2 border-border/80">
-                                            View Details
+                                            {t('order.viewDetails')}
                                             <ChevronRight size={14} />
                                         </Button>
                                     </Link>

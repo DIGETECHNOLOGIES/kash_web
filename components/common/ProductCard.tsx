@@ -47,7 +47,7 @@ export function ProductCard({ product, onAddToCart, onPress, width = '100%' }: P
             }).catch(console.error);
         } else {
             navigator.clipboard.writeText(window.location.origin + `/products/${product.id}`);
-            toast.info('Link copied to clipboard');
+            toast.info(t('common.linkCopied'));
         }
     };
 

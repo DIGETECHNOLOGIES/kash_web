@@ -136,7 +136,7 @@ export default function HomePage() {
         {/* Featured Shops */}
         <section className="mb-12 px-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Featured <span className="text-primary underline decoration-primary/30">Shops</span></h2>
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter">{t('settings.featuredShops')}</h2>
             <Link href="/shops" className="text-sm font-black text-primary hover:underline uppercase italic">
               {t('home.viewAll')}
             </Link>
@@ -158,7 +158,7 @@ export default function HomePage() {
         {/* Featured Products */}
         <section className="mb-12 px-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Hot <span className="text-primary underline decoration-primary/30">Deals</span></h2>
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter">{t('settings.hotDeals')}</h2>
             <Link href="/products" className="text-sm font-black text-primary hover:underline uppercase italic">
               {t('home.viewAll')}
             </Link>

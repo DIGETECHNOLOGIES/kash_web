@@ -16,8 +16,8 @@ import { Badge } from '@/components/common/Badge';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const schema = yup.object().shape({
-    email: yup.string().email('Invalid email').required('Email is required'),
-    password: yup.string().min(8, 'Password too short').required('Password is required'),
+    email: yup.string().email('auth.invalidEmail').required('auth.emailRequired'),
+    password: yup.string().min(8, 'auth.atLeast8Chars').required('auth.passwordRequired'),
 });
 
 export default function LoginPage() {
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 }
             }
         } catch (err: any) {
-            setError(err.message || 'Login failed. Please check your credentials.');
+            setError(err.message || t('auth.loginFailed'));
         } finally {
             setIsLoading(false);
         }
@@ -135,7 +135,7 @@ export default function LoginPage() {
                                     className="w-full h-12 rounded-2xl bg-background border border-border pl-12 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
                                 />
                             </div>
-                            {errors.email && <p className="text-[10px] text-error font-medium ml-1">{errors.email.message as string}</p>}
+                            {errors.email && <p className="text-[10px] text-error font-medium ml-1">{t(errors.email.message as string)}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -163,7 +163,7 @@ export default function LoginPage() {
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
-                            {errors.password && <p className="text-[10px] text-error font-medium ml-1">{errors.password.message as string}</p>}
+                            {errors.password && <p className="text-[10px] text-error font-medium ml-1">{t(errors.password.message as string)}</p>}
                         </div>
 
                         <Button
@@ -178,8 +178,8 @@ export default function LoginPage() {
 
                     <div className="mt-8 pt-6 border-t border-border">
                         <p className="text-center text-[10px] text-text-secondary leading-relaxed uppercase tracking-tighter">
-                            By signing in, you agree to our <br />
-                            <Link href="/terms" className="text-primary font-bold hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary font-bold hover:underline">Privacy Policy</Link>
+                            {t('auth.termsAgree').split(' ').slice(0, 4).join(' ')} <br />
+                            <Link href="/terms" className="text-primary font-bold hover:underline">{t('terms.title')}</Link> and <Link href="/privacy" className="text-primary font-bold hover:underline">{t('settings.privacy')}</Link>
                         </p>
                     </div>
                 </Card>

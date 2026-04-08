@@ -57,7 +57,7 @@ export default function ProfilePage() {
         { icon: Wallet, label: t('sidebar.wallet'), href: '/profile/wallet', color: 'text-info', bg: 'bg-info/10' },
         { icon: Store, label: t('sidebar.myShop'), href: '/profile/shop', color: 'text-warning', bg: 'bg-warning/10' },
         { icon: Bell, label: t('notifications.title'), href: '/profile/notifications', color: 'text-error', bg: 'bg-error/10' },
-        { icon: Share2, label: 'Referrals', href: '/profile/referrals', color: 'text-success', bg: 'bg-success/10' },
+        { icon: Share2, label: t('settings.referrals'), href: '/profile/referrals', color: 'text-success', bg: 'bg-success/10' },
         { icon: Settings, label: t('sidebar.settings'), href: '/profile/settings', color: 'text-text-secondary', bg: 'bg-background' },
     ];
 
@@ -84,17 +84,17 @@ export default function ProfilePage() {
                         <p className="text-slate-400 font-medium mb-4">{user?.email}</p>
                         <div className="flex flex-wrap justify-center md:justify-start gap-3">
                             <Badge variant="primary" className="bg-primary/20 text-primary-light border-none px-4 py-1.5 uppercase italic">
-                                {user?.role || 'Verified Buyer'}
+                                {user?.role === 'seller' ? t('common.verifiedSeller') : t('common.verifiedBuyer')}
                             </Badge>
                             <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-white/5 px-4 py-1.5 rounded-full backdrop-blur-sm">
-                                <History size={14} /> Joined Jan 2024
+                                <History size={14} /> {t('settings.joinedOn', { date: 'Jan 2024' })}
                             </div>
                         </div>
                     </div>
 
                     <div className="flex flex-col gap-3 w-full md:w-auto">
-                        <Button variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10 h-12 px-8">
-                            Edit Profile
+                        <Button variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10 h-12 px-8" onClick={() => router.push('/profile/edit')}>
+                            {t('settings.editProfile')}
                         </Button>
                         <Button onClick={logout} variant="error" className="rounded-2xl h-12 px-8 bg-error/20 border border-error/30 text-error hover:bg-error/30">
                             <LogOut size={18} className="mr-2" /> {t('common.logout')}
@@ -105,10 +105,10 @@ export default function ProfilePage() {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
                     {[
-                        { label: 'Total Orders', value: orders?.count || '0', icon: ShoppingBag, color: 'text-primary' },
-                        { label: 'Wallet Balance', value: formatCurrency(wallet?.availableBalance || 0), icon: CreditCard, color: 'text-info' },
-                        { label: 'Referrals', value: wallet?.totalReferrals || '0', icon: Share2, color: 'text-success' },
-                        { label: 'Unread', value: '0', icon: Bell, color: 'text-error' },
+                        { label: t('settings.totalOrdersLabel'), value: orders?.count || '0', icon: ShoppingBag, color: 'text-primary' },
+                        { label: t('settings.walletBalanceLabel'), value: formatCurrency(wallet?.availableBalance || 0), icon: CreditCard, color: 'text-info' },
+                        { label: t('settings.referrals'), value: wallet?.totalReferrals || '0', icon: Share2, color: 'text-success' },
+                        { label: t('settings.unreadLabel'), value: '0', icon: Bell, color: 'text-error' },
                     ].map((stat, i) => (
                         <Card key={i} className="flex flex-col items-center justify-center p-6 rounded-[2rem] border-border/40 bg-surface shadow-sm">
                             <stat.icon className={`${stat.color} mb-3`} size={24} />
@@ -137,7 +137,7 @@ export default function ProfilePage() {
                                     <h3 className="font-black text-lg uppercase tracking-tight italic group-hover:text-primary transition-colors">
                                         {item.label}
                                     </h3>
-                                    <p className="text-xs text-text-secondary font-medium">Manage your {item.label.toLowerCase()} settings</p>
+                                    <p className="text-xs text-text-secondary font-medium">{t('settings.manageItem', { item: item.label.toLowerCase() })}</p>
                                 </div>
                                 <ChevronRight size={20} className="text-text-secondary group-hover:text-primary translate-x-0 group-hover:translate-x-1 transition-all" />
                             </Card>

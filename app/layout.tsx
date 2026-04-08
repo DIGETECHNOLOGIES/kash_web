@@ -9,9 +9,9 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'KASH - Professional Marketplace',
-  description: 'Join the elite marketplace. Professional products, premium shops, and secure enterprise-grade transactions.',
-  keywords: ['marketplace', 'professional', 'enterprise', 'shopping', 'KASH', 'Cameroon', 'business'],
+  title: 'KASH Marketplace - Buy & Sell in Cameroon',
+  description: 'The leading professional marketplace in Cameroon. Shop the best products, follow premium stores, and enjoy secure escrow payments with KASH.',
+  keywords: ['marketplace cameroon', 'ecommerce cameroon', 'kash marketplace', 'online shopping cameroon', 'MTN MoMo payments', 'Orange Money Cameroon', 'KASH', 'trusted sellers'],
   authors: [{ name: 'KASH Enterprise' }],
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   manifest: '/manifest.json',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'KASH',
+    title: 'KASH Marketplace',
   },
   icons: {
     icon: '/logo.png',
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
     apple: '/logo.png',
   },
   openGraph: {
-    title: 'KASH - Professional Marketplace',
-    description: 'Join the community of elite sellers and premium buyers on KASH.',
+    title: 'KASH Marketplace - The #1 Trusted Shop in Cameroon',
+    description: 'Discover thousands of professional products and verified shops. Pay securely with Mobile Money and get fast delivery.',
     url: 'https://kash.pro',
     siteName: 'KASH Marketplace',
     images: [
@@ -36,16 +36,16 @@ export const metadata: Metadata = {
         url: '/logo.png',
         width: 800,
         height: 600,
-        alt: 'KASH Logo',
+        alt: 'KASH Marketplace Logo',
       },
     ],
-    locale: 'en_US',
+    locale: 'en_CM',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KASH - Professional Marketplace',
-    description: 'The elite professional marketplace.',
+    title: 'KASH Marketplace - Shop Securely in Cameroon',
+    description: 'Verified shops and secure payments at your fingertips.',
     images: ['/logo.png'],
   },
 };

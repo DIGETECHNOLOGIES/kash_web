@@ -27,7 +27,7 @@ export function ShopCard({ shop }: ShopCardProps) {
             }).catch(console.error);
         } else {
             navigator.clipboard.writeText(url);
-            toast.info('Link copied to clipboard');
+            toast.info(t('common.linkCopied'));
         }
     };
 

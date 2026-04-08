@@ -20,7 +20,7 @@ export function BottomNav() {
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-border bg-surface md:hidden">
+        <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-border bg-surface/80 backdrop-blur-xl md:hidden pb-[env(safe-area-inset-bottom)]">
             <div className="flex h-16 items-center justify-around px-2">
                 {tabs.map((tab) => {
                     const isActive = pathname === tab.href;

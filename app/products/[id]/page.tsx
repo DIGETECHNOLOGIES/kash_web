@@ -89,9 +89,9 @@ export default function ProductDetailsPage() {
         return (
             <MainLayout>
                 <div className="text-center py-24">
-                    <h1 className="text-2xl font-bold">Product not found</h1>
+                    <h1 className="text-2xl font-bold">{t('product.notFound')}</h1>
                     <Button onClick={() => router.back()} variant="ghost" className="mt-4">
-                        Go Back
+                        {t('common.back')}
                     </Button>
                 </div>
             </MainLayout>
@@ -129,7 +129,7 @@ export default function ProductDetailsPage() {
                     </div>
                     {product.discount && (
                         <Badge variant="error" className="absolute top-6 left-6 text-sm px-4 py-1.5 shadow-lg">
-                            -{product.discount}% OFF
+                            -{product.discount}% {t('settings.off')}
                         </Badge>
                     )}
                 </motion.div>
@@ -156,7 +156,7 @@ export default function ProductDetailsPage() {
                             <Star size={20} className="fill-warning" />
                             <span className="text-lg font-black">{product.average_rating?.toFixed(1) || '0.0'}</span>
                         </div>
-                        <span className="text-sm font-bold text-text-secondary">({product.review_count || 0} reviews)</span>
+                        <span className="text-sm font-bold text-text-secondary">({product.review_count || 0} {t('settings.reviews')})</span>
                     </div>
 
                     <div className="flex items-center justify-between mb-6 p-4 rounded-2xl bg-surface border border-border">
@@ -165,7 +165,7 @@ export default function ProductDetailsPage() {
                                 <Store size={20} className="text-primary" />
                             </div>
                             <div>
-                                <p className="text-xs text-text-secondary leading-none mb-1">Sold by</p>
+                                <p className="text-xs text-text-secondary leading-none mb-1">{t('settings.soldBy')}</p>
                                 <Link href={`/shops/${product.shopId}`} className="text-sm font-bold hover:text-primary transition-colors">
                                     {product.shopName}
                                 </Link>
@@ -173,7 +173,7 @@ export default function ProductDetailsPage() {
                         </div>
                         <Button variant="outline" size="sm" className="rounded-xl h-10 gap-2" onClick={handleContactMerchant}>
                             <MessageCircle size={16} />
-                            Chat
+                            {t('settings.chat')}
                         </Button>
                     </div>
 
@@ -194,7 +194,7 @@ export default function ProductDetailsPage() {
                                 {t('product.description')}
                             </h3>
                             <p className="text-text-secondary leading-relaxed text-sm lg:text-base">
-                                {product.description || 'No description available for this product.'}
+                                {product.description || t('product.noDescription')}
                             </p>
                         </div>
 
@@ -205,11 +205,11 @@ export default function ProductDetailsPage() {
                             </div>
                             <div className="flex items-center gap-2 text-xs font-bold text-text-secondary">
                                 <ShieldCheck size={16} className="text-primary" />
-                                Verified Seller
+                                {t('settings.verifiedSellerBadge')}
                             </div>
                             <div className="flex items-center gap-2 text-xs font-bold text-text-secondary">
                                 <Truck size={16} className="text-primary" />
-                                Next Day Delivery
+                                {t('settings.nextDayDelivery')}
                             </div>
                         </div>
                     </div>
@@ -234,7 +234,7 @@ export default function ProductDetailsPage() {
                                 </button>
                             </div>
                             <p className="text-xs font-bold text-text-secondary italic">
-                                {product.minQuantity} unit min.
+                                {product.minQuantity} {t('settings.unitMin')}
                             </p>
                         </div>
 
@@ -273,18 +273,18 @@ export default function ProductDetailsPage() {
                         <div className="pt-8 border-t border-border mt-8">
                             <h3 className="text-sm font-black uppercase tracking-widest text-text-secondary mb-4 flex items-center gap-2">
                                 <Info size={16} />
-                                About Merchant
+                                {t('settings.aboutMerchant')}
                             </h3>
                             <p className="text-sm text-text-secondary leading-relaxed mb-4 italic">
-                                {product.shopName} has been a verified merchant on KASH since {new Date(product.createdAt).getFullYear()}.
-                                They are known for high quality {product.category.toLowerCase()} and fast delivery.
+                                {t('settings.verifiedOnKash', { name: product.shopName, year: new Date(product.createdAt).getFullYear() })}
+                                {t('settings.merchantExpertise', { category: product.category.toLowerCase() })}
                             </p>
                             <div className="flex gap-4">
                                 <Button variant="ghost" size="sm" className="text-xs text-text-secondary hover:text-error h-8 px-0" onClick={() => router.push(`/report?type=product&id=${product.id}`)}>
-                                    Report Item
+                                    {t('settings.reportItem')}
                                 </Button>
                                 <Button variant="ghost" size="sm" className="text-xs text-text-secondary hover:text-primary h-8 px-0" onClick={() => router.push(`/help`)}>
-                                    Request Help
+                                    {t('settings.requestHelp')}
                                 </Button>
                             </div>
                         </div>
@@ -299,8 +299,8 @@ export default function ProductDetailsPage() {
                         <ShieldCheck size={32} />
                     </div>
                     <div>
-                        <h4 className="font-black text-lg mb-1">Purchase Protection</h4>
-                        <p className="text-xs text-text-secondary leading-relaxed">Your money is safe with KASH Escrow until you confirm delivery.</p>
+                        <h4 className="font-black text-lg mb-1">{t('settings.purchaseProtection')}</h4>
+                        <p className="text-xs text-text-secondary leading-relaxed">{t('settings.purchaseProtectionDesc')}</p>
                     </div>
                 </Card>
                 <Card className="flex items-center gap-6 p-8 rounded-[2rem]">
@@ -308,8 +308,8 @@ export default function ProductDetailsPage() {
                         <Truck size={32} />
                     </div>
                     <div>
-                        <h4 className="font-black text-lg mb-1">Insured Shipping</h4>
-                        <p className="text-xs text-text-secondary leading-relaxed">Damaged or lost items are fully covered by our logistics partners.</p>
+                        <h4 className="font-black text-lg mb-1">{t('settings.insuredShipping')}</h4>
+                        <p className="text-xs text-text-secondary leading-relaxed">{t('settings.insuredShippingDesc')}</p>
                     </div>
                 </Card>
                 <Card className="flex items-center gap-6 p-8 rounded-[2rem]">
@@ -317,8 +317,8 @@ export default function ProductDetailsPage() {
                         <RefreshCcw size={32} />
                     </div>
                     <div>
-                        <h4 className="font-black text-lg mb-1">Easy Exchanges</h4>
-                        <p className="text-xs text-text-secondary leading-relaxed">Return items within 48h if they don&apos;t match the description.</p>
+                        <h4 className="font-black text-lg mb-1">{t('settings.easyExchanges')}</h4>
+                        <p className="text-xs text-text-secondary leading-relaxed">{t('settings.easyExchangesDesc')}</p>
                     </div>
                 </Card>
             </section>

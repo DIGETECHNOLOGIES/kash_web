@@ -45,36 +45,36 @@ export default function SettingsPage() {
 
     const menuItems: { title: string; items: MenuItem[] }[] = [
         {
-            title: 'Account Settings',
+            title: t('settings.accountSettings'),
             items: [
-                { icon: User, label: 'Profile Information', sub: 'Update your name, email and details', href: '/profile/settings/account' },
-                { icon: Lock, label: 'Password & Security', sub: 'Change password and 2FA', href: '/profile/settings/security' },
-                { icon: CreditCard, label: 'Payment Methods', sub: 'Manage your saved cards and MOMO', href: '/profile/settings/payments' },
+                { icon: User, label: t('settings.profileInfo'), sub: t('settings.profileInfoSub'), href: '/profile/settings/account' },
+                { icon: Lock, label: t('settings.passwordSecurity'), sub: t('settings.passwordSecuritySub'), href: '/profile/settings/security' },
+                { icon: CreditCard, label: t('settings.paymentMethods'), sub: t('settings.paymentMethodsSub'), href: '/profile/settings/payments' },
             ]
         },
         {
-            title: 'Preferences',
+            title: t('settings.preferences'),
             items: [
                 {
                     icon: Globe,
-                    label: 'Language',
-                    sub: i18n.language === 'fr' ? 'Français' : 'English',
+                    label: t('profile.language'),
+                    sub: i18n.language === 'fr' ? t('settings.french') : t('settings.english'),
                     action: () => changeLanguage(i18n.language === 'en' ? 'fr' : 'en')
                 },
                 {
                     icon: mode === 'dark' ? Moon : Sun,
-                    label: 'Appearance',
-                    sub: mode === 'dark' ? 'Dark Mode' : 'Light Mode',
+                    label: t('settings.appearance'),
+                    sub: mode === 'dark' ? t('settings.appearanceSubDark') : t('settings.appearanceSubLight'),
                     action: toggleTheme
                 },
-                { icon: Bell, label: 'Notifications', sub: 'Configure alerts and updates', href: '/profile/notifications' },
+                { icon: Bell, label: t('notifications.title'), sub: t('settings.notificationsSub'), href: '/profile/notifications' },
             ]
         },
         {
-            title: 'Support & About',
+            title: t('settings.supportAbout'),
             items: [
-                { icon: ShieldCheck, label: 'Privacy Policy', sub: 'Data collection and usage', href: '/privacy' },
-                { icon: Smartphone, label: 'App Version', sub: 'v1.0.0', disabled: true },
+                { icon: ShieldCheck, label: t('settings.privacy'), sub: t('settings.privacyPolicySub'), href: '/privacy' },
+                { icon: Smartphone, label: t('settings.appVersion'), sub: 'v1.0.0', disabled: true },
             ]
         }
     ];
@@ -86,12 +86,12 @@ export default function SettingsPage() {
                     onClick={() => router.back()}
                     className="mb-8 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-colors"
                 >
-                    <ChevronLeft size={20} /> Settings
+                    <ChevronLeft size={20} /> {t('settings.settings')}
                 </button>
 
                 <header className="mb-12">
-                    <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">Control <span className="text-primary underline decoration-primary/30">Panel</span></h1>
-                    <p className="text-text-secondary">Personalize your experience and manage your account security.</p>
+                    <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">{t('settings.controlPanel', 'Control Panel')}</h1>
+                    <p className="text-text-secondary">{t('settings.settingsHeader')}</p>
                 </header>
 
                 <div className="space-y-12">
@@ -127,10 +127,10 @@ export default function SettingsPage() {
 
                 <div className="mt-20 pt-12 border-t border-border/40 text-center">
                     <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-8 italic">
-                        KASH Marketplace &copy; 2024 • Secured by enterprise layer
+                        KASH Marketplace &copy; 2024 • {t('settings.enterpriseLayer')}
                     </p>
                     <Button variant="outline" className="rounded-2xl border-error/20 text-error hover:bg-error/5 h-12 px-8 uppercase font-bold italic">
-                        Delete Account
+                        {t('settings.deleteAccount')}
                     </Button>
                 </div>
             </div>

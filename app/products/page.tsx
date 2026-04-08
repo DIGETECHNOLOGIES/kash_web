@@ -54,7 +54,7 @@ function ProductsContent() {
                                 onClick={() => setSelectedCategory(null)}
                                 className={`w-full text-left px-4 py-2 rounded-xl text-sm font-bold transition-all ${!selectedCategory ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-primary/5'}`}
                             >
-                                All Categories
+                                {t('settings.allCategories')}
                             </button>
                             {categoriesData?.results?.map((cat: any) => (
                                 <button
@@ -73,7 +73,7 @@ function ProductsContent() {
                 <div className="flex-1">
                     <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
                         <h1 className="text-3xl font-black italic tracking-tighter uppercase">
-                            Explore <span className="text-primary underline decoration-primary/30">Market</span>
+                            {t('settings.exploreMarket')}
                         </h1>
 
                         <div className="flex items-center gap-2 w-full md:w-auto">
@@ -107,9 +107,9 @@ function ProductsContent() {
                             </div>
                         ) : productsData?.results?.length === 0 ? (
                             <div className="text-center py-24 bg-surface rounded-[3rem] border border-dashed border-border opacity-50">
-                                <p className="text-text-secondary font-black uppercase italic tracking-tighter text-xl">No products match your criteria</p>
+                                <p className="text-text-secondary font-black uppercase italic tracking-tighter text-xl">{t('settings.noProductsMatch')}</p>
                                 <Button variant="ghost" className="mt-4 font-bold" onClick={() => { setSearch(''); setSelectedCategory(null); }}>
-                                    Clear Filters
+                                    {t('settings.clearFilters')}
                                 </Button>
                             </div>
                         ) : (
@@ -180,7 +180,7 @@ function ProductsContent() {
                             className="fixed right-0 top-0 z-[60] h-full w-4/5 max-w-sm bg-surface p-8 shadow-2xl lg:hidden"
                         >
                             <div className="flex items-center justify-between mb-8">
-                                <h2 className="text-xl font-black italic tracking-tighter uppercase">Filters</h2>
+                                <h2 className="text-xl font-black italic tracking-tighter uppercase">{t('settings.filters')}</h2>
                                 <button onClick={() => setIsFilterOpen(false)} className="rounded-full bg-background p-2">
                                     <X size={20} />
                                 </button>
@@ -196,7 +196,7 @@ function ProductsContent() {
                                             onClick={() => { setSelectedCategory(null); setIsFilterOpen(false); }}
                                             className={`w-full text-left px-4 py-4 rounded-xl text-sm font-bold transition-all ${!selectedCategory ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-background hover:bg-primary/5'}`}
                                         >
-                                            All Categories
+                                            {t('settings.allCategories')}
                                         </button>
                                         {categoriesData?.results?.map((cat: any) => (
                                             <button

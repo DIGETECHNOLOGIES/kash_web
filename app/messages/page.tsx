@@ -66,13 +66,13 @@ function formatTime(ts?: string) {
     return format(new Date(ts), 'HH:mm');
 }
 
-function formatDate(ts?: string) {
+function formatDate(ts: string, t: any) {
     if (!ts) return '';
     const d = new Date(ts);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
+    if (diffDays === 0) return t('messages.today');
+    if (diffDays === 1) return t('messages.yesterday');
     if (diffDays < 7) return format(d, 'EEEE');
     return format(d, 'dd MMM yyyy');
 }
@@ -208,8 +208,12 @@ export default function MessagesPage() {
                 <aside className={cn('wa-sidebar', mobileView === 'chat' && 'wa-sidebar--mobile-hidden')}>
                     {/* Header */}
                     <div className="wa-sidebar-header">
-                        <ConversationAvatar participant={{ name: user?.username }} size={40} />
-                        <h1 className="wa-sidebar-title">Messages</h1>
+                        <button className="wa-hdr-btn text-white"><MoreVertical size={20} /></button>
+                        <h1 className="wa-sidebar-title text-white flex-1 text-center font-black italic tracking-tighter uppercase">KASH</h1>
+                        <div className="flex gap-1">
+                            <button className="wa-hdr-btn text-white"><Search size={18} /></button>
+                            <ConversationAvatar participant={{ name: user?.username }} size={32} />
+                        </div>
                     </div>
 
                     {/* Search */}
@@ -217,7 +221,7 @@ export default function MessagesPage() {
                         <Search className="wa-search-icon" size={15} />
                         <input
                             className="wa-search-input"
-                            placeholder="Search conversations"
+                            placeholder={t('messages.searchConversations')}
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
@@ -232,7 +236,7 @@ export default function MessagesPage() {
                         ) : filteredConversations.length === 0 ? (
                             <div className="wa-conv-empty">
                                 <MessageSquare size={40} />
-                                <span>No conversations yet</span>
+                                <span>{t('messages.noConversations')}</span>
                             </div>
                         ) : (
                             filteredConversations.map(conv => {
@@ -261,7 +265,7 @@ export default function MessagesPage() {
                                             </div>
                                             <div className="wa-conv-bottom">
                                                 <span className="wa-conv-preview">
-                                                    {conv.lastMessage?.content || '📎 Media'}
+                                                    {conv.lastMessage?.content || t('messages.media')}
                                                 </span>
                                                 {(conv.unreadCount ?? 0) > 0 && (
                                                     <span className="wa-unread-badge">{conv.unreadCount}</span>
@@ -283,27 +287,27 @@ export default function MessagesPage() {
                                 <MessageSquare size={72} />
                             </div>
                             <h2 className="wa-welcome-title">KASH Messenger</h2>
-                            <p className="wa-welcome-sub">Select a conversation to start chatting with buyers or sellers</p>
+                            <p className="wa-welcome-sub">{t('messages.selectToStart')}</p>
                         </div>
                     ) : (
                         <>
                             {/* Chat Header */}
                             <div className="wa-chat-header">
                                 <div className="wa-chat-header-left">
-                                    <button className="wa-back-btn" onClick={() => setMobileView('list')}>
+                                    <button className="wa-back-btn text-white" onClick={() => setMobileView('list')}>
                                         <ChevronLeft size={22} />
                                     </button>
                                     <ConversationAvatar participant={otherParticipant} size={40} />
                                     <div className="wa-chat-info">
-                                        <span className="wa-chat-name">
-                                            {otherParticipant?.name || otherParticipant?.username || 'Loading...'}
+                                        <span className="wa-chat-name text-white">
+                                            {otherParticipant?.name || otherParticipant?.username || t('common.loading')}
                                         </span>
-                                        <span className="wa-chat-sub">tap here for more info</span>
+                                        <span className="wa-chat-sub text-white/70">{t('messages.tapForInfo')}</span>
                                     </div>
                                 </div>
                                 <div className="wa-chat-header-actions">
-                                    <button className="wa-hdr-btn"><Phone size={20} /></button>
-                                    <button className="wa-hdr-btn"><MoreVertical size={20} /></button>
+                                    <button className="wa-hdr-btn text-white"><Phone size={20} /></button>
+                                    <button className="wa-hdr-btn text-white"><MoreVertical size={20} /></button>
                                 </div>
                             </div>
 
@@ -320,14 +324,14 @@ export default function MessagesPage() {
                                 ) : messages.length === 0 ? (
                                     <div className="wa-no-msgs">
                                         <div className="wa-no-msgs-icon"><Smile size={32} /></div>
-                                        <p>Say something! 👋</p>
+                                        <p>{t('messages.saySomething')}</p>
                                     </div>
                                 ) : (
                                     <>
                                         {/* Date label for first visible message group */}
                                         {messages[0]?.timestamp && (
                                             <div className="wa-date-sep">
-                                                <span>{formatDate(messages[0].timestamp)}</span>
+                                                <span>{formatDate(messages[0].timestamp, t)}</span>
                                             </div>
                                         )}
 
@@ -342,9 +346,9 @@ export default function MessagesPage() {
 
                                             return (
                                                 <React.Fragment key={msg.id}>
-                                                    {showDateSep && (
+                                                    {showDateSep && msg.timestamp && (
                                                         <div className="wa-date-sep">
-                                                            <span>{formatDate(msg.timestamp)}</span>
+                                                            <span>{formatDate(msg.timestamp, t)}</span>
                                                         </div>
                                                     )}
                                                     <div className={cn('wa-msg-row', isOwn ? 'wa-msg-row--out' : 'wa-msg-row--in')}>
@@ -433,7 +437,7 @@ export default function MessagesPage() {
                                             value={inputText}
                                             onChange={e => setInputText(e.target.value)}
                                             onKeyDown={handleKeyDown}
-                                            placeholder="Type a message"
+                                            placeholder={t('messages.typeMessage')}
                                             rows={1}
                                         />
                                     </div>
@@ -470,6 +474,7 @@ export default function MessagesPage() {
           background: #f0f2f5;
           border-radius: 0;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* ─── Sidebar ─── */
@@ -488,8 +493,8 @@ export default function MessagesPage() {
           align-items: center;
           gap: 1rem;
           padding: 0.85rem 1rem;
-          background: #f0f2f5;
-          border-bottom: 1px solid #e9edef;
+          background: #00d084;
+          border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         .wa-sidebar-title {
@@ -627,8 +632,8 @@ export default function MessagesPage() {
         .wa-chat-header {
           display: flex; align-items: center;
           justify-content: space-between;
-          background: #f0f2f5; padding: 0.5rem 1rem;
-          border-bottom: 1px solid #e9edef; gap: 0.75rem; z-index: 10;
+          background: #00d084; padding: 0.5rem 1rem;
+          border-bottom: 1px solid rgba(0,0,0,0.05); gap: 0.75rem; z-index: 10;
         }
 
         .wa-chat-header-left {

@@ -46,11 +46,11 @@ export default function CheckoutPage() {
 
     const handlePlaceOrder = async () => {
         if (!paymentMethod) {
-            toast.error('Please select a payment method');
+            toast.error(t('checkout.selectPaymentMethod'));
             return;
         }
         if (!phone || !location) {
-            toast.error('Please provide delivery details');
+            toast.error(t('checkout.provideDeliveryDetails'));
             return;
         }
 
@@ -83,7 +83,7 @@ export default function CheckoutPage() {
                     phone_number: phone,
                     order_ids: [Number(order.id)]
                 });
-                toast.info(`Payment request sent for ${order.product_name || 'Item'}`);
+                toast.info(t('checkout.paymentRequestSent', { item: order.product_name || 'Item' }));
             }
 
             clearCart();
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
 
         } catch (error: any) {
             console.error(error);
-            toast.error(error.message || 'Failed to process order');
+            toast.error(error.message || t('checkout.errorProcessOrder'));
         } finally {
             setLoading(false);
         }
@@ -112,9 +112,9 @@ export default function CheckoutPage() {
                         onClick={() => step > 1 ? setStep(step - 1) : router.back()}
                         className="mb-8 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-colors"
                     >
-                        <ChevronLeft size={20} /> Back
+                        <ChevronLeft size={20} /> {t('common.back')}
                     </button>
-                    <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">Secure <span className="text-primary underline decoration-primary/30">Checkout</span></h1>
+                    <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">{t('checkout.title')}</h1>
 
                     {/* Progress Bar */}
                     <div className="flex items-center gap-4 mt-8">
@@ -137,12 +137,12 @@ export default function CheckoutPage() {
                                 >
                                     <Card className="p-8 md:p-10 rounded-[3rem] border-none shadow-2xl">
                                         <h3 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-8 italic flex items-center gap-2">
-                                            <Truck size={18} className="text-primary" /> Delivery Logistics
+                                            <Truck size={18} className="text-primary" /> {t('checkout.deliveryLogistics')}
                                         </h3>
 
                                         <div className="space-y-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Delivery Address</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">{t('checkout.deliveryAddress')}</label>
                                                 <div className="relative">
                                                     <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
                                                     <input
@@ -156,7 +156,7 @@ export default function CheckoutPage() {
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Contact Phone</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">{t('checkout.contactPhone')}</label>
                                                     <div className="relative">
                                                         <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
                                                         <input
@@ -168,12 +168,12 @@ export default function CheckoutPage() {
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Delivery Speed</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">{t('checkout.deliverySpeed')}</label>
                                                     <div className="h-16 rounded-[1.5rem] bg-primary/5 border-2 border-primary/20 flex items-center px-8 gap-4">
                                                         <CheckCircle2 size={24} className="text-primary" />
                                                         <div className="flex-1">
-                                                            <span className="text-xs font-black italic uppercase italic">Priority Express</span>
-                                                            <p className="text-[8px] font-bold text-text-secondary uppercase">24h Delivery Guaranteed</p>
+                                                            <span className="text-xs font-black italic uppercase italic">{t('checkout.priorityExpress')}</span>
+                                                            <p className="text-[8px] font-bold text-text-secondary uppercase">{t('checkout.deliveryGuaranteed')}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -182,13 +182,9 @@ export default function CheckoutPage() {
                                     </Card>
 
                                     <Button
-                                        onClick={() => {
-                                            if (!location || !phone) toast.error('Please fill in all delivery details');
-                                            else setStep(2);
-                                        }}
-                                        className="w-full h-16 rounded-[2rem] font-black uppercase italic shadow-2xl shadow-primary/20"
+                                        onClick={() => setStep(2)}
                                     >
-                                        Proceed to Payment <ArrowRight size={20} className="ml-2" />
+                                        {t('checkout.proceedToPayment')} <ArrowRight size={20} className="ml-2" />
                                     </Button>
                                 </motion.div>
                             ) : (
@@ -201,7 +197,7 @@ export default function CheckoutPage() {
                                 >
                                     <Card className="p-8 md:p-10 rounded-[3rem] border-none shadow-2xl">
                                         <h3 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-8 italic flex items-center gap-2">
-                                            <CreditCard size={18} className="text-primary" /> Payment Method Selection
+                                            <CreditCard size={18} className="text-primary" /> {t('checkout.paymentMethodSelection')}
                                         </h3>
 
                                         <div className="grid grid-cols-1 gap-4">
@@ -233,7 +229,7 @@ export default function CheckoutPage() {
                                     <div className="flex items-center gap-4 bg-primary/5 p-6 rounded-[2.5rem] border border-primary/10">
                                         <ShieldCheck className="text-primary shrink-0" size={24} />
                                         <p className="text-[10px] font-bold text-text-secondary leading-relaxed uppercase italic">
-                                            Your transaction is protected by KASH Escrow. Funds are only released to the seller once you verify delivery.
+                                            {t('cart.securedByEscrow')}. {t('cart.separateCheckout')}.
                                         </p>
                                     </div>
 
@@ -242,7 +238,7 @@ export default function CheckoutPage() {
                                         isLoading={loading}
                                         className="w-full h-20 rounded-[2rem] text-lg font-black uppercase italic shadow-2xl shadow-primary/30 group bg-primary"
                                     >
-                                        Confirm & Pay
+                                        {t('checkout.confirmAndPay')}
                                         <Lock size={20} className="ml-3 group-hover:scale-110 transition-transform" />
                                     </Button>
                                 </motion.div>
@@ -254,7 +250,7 @@ export default function CheckoutPage() {
                     <aside className="w-full space-y-8">
                         <Card className="p-8 rounded-[3rem] border-none shadow-2xl bg-secondary text-white relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-primary rounded-full blur-[80px] opacity-20" />
-                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-8 italic relative z-10">Order Summary</h3>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-8 italic relative z-10">{t('cart.summary')}</h3>
 
                             <div className="space-y-4 max-h-[300px] overflow-y-auto mb-8 pr-2 relative z-10">
                                 {items.map((item) => (
@@ -264,7 +260,7 @@ export default function CheckoutPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-[10px] font-black uppercase tracking-tight truncate">{item.product.name}</h4>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase">QTY: {item.quantity}</p>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase">{t('product.quantity')}: {item.quantity}</p>
                                         </div>
                                         <span className="text-[10px] font-black italic">{(item.product.price * item.quantity).toLocaleString()} F</span>
                                     </div>
@@ -273,23 +269,23 @@ export default function CheckoutPage() {
 
                             <div className="space-y-3 pt-6 border-t border-white/10 relative z-10">
                                 <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <span>Subtotal</span>
+                                    <span>{t('cart.subtotal')}</span>
                                     <span>{formatCurrency(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <span>Service Fee (2%)</span>
+                                    <span>{t('cart.serviceFee')} (2%)</span>
                                     <span>{formatCurrency(serviceFee)}</span>
                                 </div>
                                 <div className="flex justify-between items-end pt-4 border-t border-white/20">
-                                    <span className="text-lg font-black italic uppercase tracking-tighter">Total</span>
+                                    <span className="text-lg font-black italic uppercase tracking-tighter">{t('cart.total')}</span>
                                     <span className="text-2xl font-black text-primary italic">{formatCurrency(total)}</span>
                                 </div>
                             </div>
                         </Card>
 
                         <div className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-surface shadow-sm border border-border/40">
-                            <Badge variant="primary" className="p-1 px-3 uppercase italic font-black text-[8px]">Verified</Badge>
-                            <span className="text-[10px] font-bold text-text-secondary uppercase">Secure SSL Encryption</span>
+                            <Badge variant="primary" className="p-1 px-3 uppercase italic font-black text-[8px]">{t('shop.verified')}</Badge>
+                            <span className="text-[10px] font-bold text-text-secondary uppercase">{t('checkout.secureSsl')}</span>
                         </div>
                     </aside>
                 </div>

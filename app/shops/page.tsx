@@ -26,18 +26,17 @@ export default function ShopsPage() {
         <MainLayout>
             <div className="mb-12 text-center">
                 <h1 className="text-4xl font-black italic tracking-tighter mb-4 uppercase">
-                    Verified <span className="text-primary underline decoration-primary/30">Merchants</span>
+                    {t('settings.verifiedMerchants')}
                 </h1>
                 <p className="text-text-secondary max-w-xl mx-auto mb-8">
-                    Shop directly from the best retailers and manufacturers across the country.
-                    Every merchant on KASH is manually verified for your security.
+                    {t('settings.verifiedMerchantsDesc')}
                 </p>
 
                 <div className="relative max-w-xl mx-auto">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-text-secondary" />
                     <input
                         type="text"
-                        placeholder="Search for a shop or brand..."
+                        placeholder={t('settings.searchShopPlaceholder')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full h-16 rounded-[2rem] border border-border bg-surface pl-14 pr-6 text-md font-medium shadow-lg shadow-black/5 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all"
@@ -89,7 +88,7 @@ export default function ShopsPage() {
                                         </div>
 
                                         <p className="text-sm text-text-secondary line-clamp-2 mb-6 flex-1 italic">
-                                            {shop.description || 'Welcome to our official KASH store. We provide high-quality products at competitive prices.'}
+                                            {shop.description || t('settings.defaultShopDesc')}
                                         </p>
 
                                         <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">

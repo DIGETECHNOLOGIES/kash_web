@@ -37,7 +37,7 @@ export default function CartPage() {
             <div className="mb-12">
                 <h1 className="text-4xl font-black italic tracking-tighter uppercase flex items-center gap-4">
                     <ShoppingCart size={40} className="text-primary" />
-                    Your <span className="text-primary underline decoration-primary/30">Basket</span>
+                    {t('cart.basket')}
                 </h1>
             </div>
 
@@ -47,10 +47,10 @@ export default function CartPage() {
                         <ShoppingBag size={48} />
                     </div>
                     <h2 className="text-2xl font-black italic uppercase mb-2">{t('cart.empty')}</h2>
-                    <p className="text-text-secondary mb-8">Looks like you haven&apos;t added anything yet.</p>
+                    <p className="text-text-secondary mb-8">{t('cart.looksLikeEmpty')}</p>
                     <Link href="/products">
                         <Button size="lg" className="rounded-2xl px-12">
-                            Start Shopping
+                            {t('cart.continueShopping')}
                         </Button>
                     </Link>
                 </div>
@@ -116,20 +116,20 @@ export default function CartPage() {
                     <aside className="w-full lg:w-96">
                         <Card className="p-8 rounded-[2.5rem] bg-secondary text-white sticky top-24 shadow-2xl border-none">
                             <h2 className="text-xl font-black italic uppercase tracking-tighter mb-8 border-b border-white/10 pb-4">
-                                Summary
+                                {t('cart.summary')}
                             </h2>
 
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between text-sm text-slate-400">
-                                    <span>Subtotal</span>
+                                    <span>{t('cart.subtotal')}</span>
                                     <span className="font-bold text-white">{formatCurrency(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm text-slate-400">
-                                    <span>Service Fee (2%)</span>
+                                    <span>{t('cart.serviceFee')} (2%)</span>
                                     <span className="font-bold text-white">{formatCurrency(serviceFee)}</span>
                                 </div>
                                 <div className="pt-4 border-t border-white/10 flex justify-between items-center">
-                                    <span className="font-black italic uppercase text-lg">Total</span>
+                                    <span className="font-black italic uppercase text-lg">{t('cart.total')}</span>
                                     <span className="text-2xl font-black text-primary italic">
                                         {formatCurrency(total)}
                                     </span>
@@ -137,18 +137,18 @@ export default function CartPage() {
                             </div>
 
                             <Button size="lg" className="w-full rounded-2xl h-14 text-md font-black group" onClick={handleCheckout}>
-                                Checkout Now
+                                {t('cart.checkoutNow')}
                                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                             </Button>
 
                             <div className="mt-8 space-y-4">
                                 <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400">
                                     <ShieldCheck size={16} className="text-primary" />
-                                    SECURED BY KASH ESCROW
+                                    {t('cart.securedByEscrow')}
                                 </div>
                                 <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400">
                                     <Truck size={16} className="text-primary" />
-                                    NEXT DAY EXPRESS DELIVERY
+                                    {t('cart.expressDelivery')}
                                 </div>
                             </div>
                         </Card>

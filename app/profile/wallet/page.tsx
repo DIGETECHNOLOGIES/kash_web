@@ -63,7 +63,7 @@ export default function WalletPage() {
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-8 flex items-center gap-4">
                     <Wallet size={40} className="text-primary" />
-                    My <span className="text-primary underline decoration-primary/30">Wallet</span>
+                    {t('wallet.title').split(' ')[0]} <span className="text-primary underline decoration-primary/30">{t('wallet.title').split(' ')[1]}</span>
                 </h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -72,7 +72,7 @@ export default function WalletPage() {
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full blur-[100px] opacity-20 translate-x-1/2 -translate-y-1/2" />
 
                         <div className="relative z-10">
-                            <span className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2 block italic">Available Funds</span>
+                            <span className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2 block italic">{t('wallet.availableFunds')}</span>
                             <div className="text-5xl font-black italic tracking-tighter mb-8">
                                 {isLoadingBalance ? '---' : (balance?.availableBalance || balance?.available_balance || 0).toLocaleString()} <small className="text-xl not-italic font-bold opacity-50">FCFA</small>
                             </div>
@@ -82,7 +82,7 @@ export default function WalletPage() {
                                     onClick={() => setIsWithdrawOpen(true)}
                                     className="rounded-2xl h-14 flex-1 font-black uppercase tracking-tight italic"
                                 >
-                                    Withdraw <ArrowUpRight size={18} className="ml-2" />
+                                    {t('wallet.withdraw')} <ArrowUpRight size={18} className="ml-2" />
                                 </Button>
                                 <Button variant="outline" className="rounded-2xl h-14 w-14 border-white/20 text-white hover:bg-white/10 p-0">
                                     <Info size={24} />
@@ -98,7 +98,7 @@ export default function WalletPage() {
                                 <History size={32} />
                             </div>
                             <div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1 block">Pending Clearance</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1 block">{t('wallet.pendingBalance')}</span>
                                 <span className="text-xl font-black italic">
                                     {isLoadingBalance ? '---' : (balance?.pendingBalance || balance?.pending_balance || 0).toLocaleString()} <small className="text-xs not-italic opacity-50 font-bold">FCFA</small>
                                 </span>
@@ -109,7 +109,7 @@ export default function WalletPage() {
                                 <DollarSign size={32} />
                             </div>
                             <div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1 block">Referral Earnings</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1 block">{t('wallet.referralEarnings')}</span>
                                 <span className="text-xl font-black italic">
                                     {isLoadingBalance ? '---' : (balance?.referralEarnings || 0).toLocaleString()} <small className="text-xs not-italic opacity-50 font-bold">FCFA</small>
                                 </span>
@@ -121,8 +121,8 @@ export default function WalletPage() {
                 {/* Transaction History */}
                 <section>
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-2xl font-black italic tracking-tighter uppercase">Transaction <span className="text-primary underline decoration-primary/30">History</span></h2>
-                        <Badge variant="outline" className="px-4 py-1.5 rounded-xl uppercase font-black italic">Recent Activity</Badge>
+                        <h2 className="text-2xl font-black italic tracking-tighter uppercase">{t('wallet.withdrawalHistory').split(' ')[0]} <span className="text-primary underline decoration-primary/30">{t('wallet.withdrawalHistory').split(' ')[1]}</span></h2>
+                        <Badge variant="outline" className="px-4 py-1.5 rounded-xl uppercase font-black italic">{t('wallet.recentActivity')}</Badge>
                     </div>
 
                     <div className="space-y-4">
@@ -131,7 +131,7 @@ export default function WalletPage() {
                         ) : transactions?.results?.length === 0 ? (
                             <div className="py-20 text-center bg-surface/50 rounded-[3rem] border border-dashed border-border opacity-50">
                                 <History className="mx-auto mb-4 text-text-secondary" size={48} />
-                                <p className="font-bold uppercase tracking-widest italic">No transactions found</p>
+                                <p className="font-bold uppercase tracking-widest italic">{t('wallet.noWithdrawals')}</p>
                             </div>
                         ) : (
                             transactions?.results?.map((tx: any) => (
@@ -175,14 +175,14 @@ export default function WalletPage() {
                                     <div className="h-20 w-20 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
                                         <ArrowUpRight size={40} />
                                     </div>
-                                    <h2 className="text-2xl font-black italic uppercase tracking-tighter">Withdraw Funds</h2>
-                                    <p className="text-xs font-bold text-text-secondary uppercase tracking-widest mt-1">Available: {(balance?.availableBalance || balance?.available_balance || 0).toLocaleString()} F</p>
+                                    <h2 className="text-2xl font-black italic uppercase tracking-tighter">{t('wallet.withdrawFunds')}</h2>
+                                    <p className="text-xs font-bold text-text-secondary uppercase tracking-widest mt-1">{t('wallet.availableBalance')}: {(balance?.availableBalance || balance?.available_balance || 0).toLocaleString()} F</p>
                                 </div>
 
                                 <form onSubmit={handleWithdraw} className="space-y-8">
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Enter Amount (FCFA)</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">{t('wallet.withdrawAmount')} (FCFA)</label>
                                             <input
                                                 type="number"
                                                 value={withdrawAmount}
@@ -193,7 +193,7 @@ export default function WalletPage() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Account Number (MOMO/ORANGE)</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">{t('wallet.accountNumberMomo')}</label>
                                             <input
                                                 type="tel"
                                                 value={accountNumber}
@@ -204,7 +204,7 @@ export default function WalletPage() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Account Name</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">{t('wallet.accountName')}</label>
                                             <input
                                                 type="text"
                                                 value={accountName}
@@ -217,11 +217,11 @@ export default function WalletPage() {
 
                                     <div className="bg-primary/5 rounded-2xl p-4 space-y-2">
                                         <div className="flex justify-between text-[10px] font-bold text-text-secondary">
-                                            <span>Charges (5%)</span>
+                                            <span>{t('wallet.charges5')}</span>
                                             <span>{(Number(withdrawAmount) * 0.05).toLocaleString()} F</span>
                                         </div>
                                         <div className="flex justify-between text-xs font-black text-primary italic border-t border-primary/10 pt-2">
-                                            <span>You will receive</span>
+                                            <span>{t('wallet.youWillReceive')}</span>
                                             <span>{(Number(withdrawAmount) * 0.95).toLocaleString()} F</span>
                                         </div>
                                     </div>
@@ -233,20 +233,20 @@ export default function WalletPage() {
                                             onClick={() => setIsWithdrawOpen(false)}
                                             className="flex-1 rounded-2xl h-14 font-black uppercase tracking-tight italic"
                                         >
-                                            Cancel
+                                            {t('common.cancel')}
                                         </Button>
                                         <Button
                                             type="submit"
                                             isLoading={withdrawMutation.isPending}
                                             className="flex-1 rounded-2xl h-14 font-black uppercase tracking-tight italic shadow-lg shadow-primary/20"
                                         >
-                                            Confirm
+                                            {t('common.confirm')}
                                         </Button>
                                     </div>
 
                                     <p className="text-[10px] text-center text-text-secondary font-bold uppercase flex items-center justify-center gap-2">
                                         <ShieldCheck size={14} className="text-primary" />
-                                        Processed via KASH Secure Escrow
+                                        {t('wallet.secureEscrow')}
                                     </p>
                                 </form>
                             </Card>

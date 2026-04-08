@@ -80,7 +80,7 @@ export default function ShopDetailsPage() {
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-secondary opacity-60" />
                     <div className="absolute top-6 right-6 flex gap-3">
                         <Button variant="outline" className="rounded-2xl border-white/20 text-white bg-white/10 backdrop-blur-md">
-                            <Share2 size={18} className="mr-2" /> Share
+                            <Share2 size={18} className="mr-2" /> {t('common.share')}
                         </Button>
                     </div>
                 </div>
@@ -105,13 +105,13 @@ export default function ShopDetailsPage() {
                             </div>
                             <div className="flex flex-wrap gap-6 text-base font-black italic uppercase tracking-widest text-text-secondary">
                                 <span className="flex items-center gap-2"><MapPin size={20} className="text-primary" /> {shop?.location}, {shop?.region}</span>
-                                <span className="flex items-center gap-2"><Calendar size={20} className="text-primary" /> Joined {shop?.createdAt ? new Date(shop.createdAt).getFullYear() : '2024'}</span>
-                                <span className="flex items-center gap-2 text-warning"><Star size={20} className="fill-warning" /> {shop?.average_rating?.toFixed(1) || '0.0'} ({shop?.review_count || 0} reviews)</span>
+                                <span className="flex items-center gap-2"><Calendar size={20} className="text-primary" /> {t('settings.joinedOnShop', { year: shop?.createdAt ? new Date(shop.createdAt).getFullYear() : '2024' })}</span>
+                                <span className="flex items-center gap-2 text-warning"><Star size={20} className="fill-warning" /> {shop?.average_rating?.toFixed(1) || '0.0'} ({shop?.review_count || 0} {t('settings.reviews')})</span>
                             </div>
                         </div>
                         <div className="w-full md:w-auto mb-2">
                             <Button size="lg" className="w-full md:w-auto h-16 px-10 rounded-2xl shadow-2xl shadow-primary/20 font-black uppercase italic tracking-widest text-lg" onClick={handleContact}>
-                                <MessageCircle size={24} className="mr-2" /> Contact Merchant
+                                <MessageCircle size={24} className="mr-2" /> {t('settings.chat')}
                             </Button>
                         </div>
                     </div>
@@ -119,10 +119,10 @@ export default function ShopDetailsPage() {
                     <Card className="p-10 rounded-[3rem] border-none bg-surface/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
                         <h3 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-4 italic flex items-center gap-2">
-                            <Store size={16} className="text-primary" /> About the Merchant
+                            <Store size={16} className="text-primary" /> {t('settings.aboutMerchant')}
                         </h3>
                         <p className="text-text-secondary leading-relaxed max-w-4xl text-lg font-medium italic">
-                            {shop?.description || `Welcome to ${shop?.name}. We are verified merchants on KASH specializing in high-quality products with a focus on customer satisfaction and reliable delivery across ${shop?.region}.`}
+                            {shop?.description || t('settings.defaultShopDescription', { name: shop?.name, region: shop?.region })}
                         </p>
                     </Card>
                 </div>
@@ -131,8 +131,8 @@ export default function ShopDetailsPage() {
             {/* Shop Products */}
             <section>
                 <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-2xl font-black italic tracking-tighter uppercase">Merchant <span className="text-primary underline decoration-primary/30">Catalog</span></h2>
-                    <Badge variant="outline" className="px-4 py-1.5 rounded-xl uppercase font-black italic">{productsData?.count || 0} Products</Badge>
+                    <h2 className="text-2xl font-black italic tracking-tighter uppercase">{t('settings.merchantCatalog')}</h2>
+                    <Badge variant="outline" className="px-4 py-1.5 rounded-xl uppercase font-black italic">{productsData?.count || 0} {t('home.products')}</Badge>
                 </div>
 
                 {isLoadingProducts ? (
