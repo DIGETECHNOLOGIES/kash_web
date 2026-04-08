@@ -43,9 +43,9 @@ export default function ForgotPasswordPage() {
                     <p className="text-text-secondary max-w-sm mx-auto mb-8">
                         We&apos;ve sent a password reset code to <strong>{email}</strong>. Please check your inbox.
                     </p>
-                    <Link href={`/reset-password?email=${encodeURIComponent(email)}`}>
+                    <Link href={`/verify-password-otp?email=${encodeURIComponent(email)}`}>
                         <Button size="lg" className="rounded-2xl px-12">
-                            Continue to Reset
+                            Enter Code
                         </Button>
                     </Link>
                 </motion.div>

@@ -167,13 +167,10 @@ export default function OrderDetailPage() {
                                     <span>Subtotal</span>
                                     <span>{Number(order.totalAmount || 0).toLocaleString()} F</span>
                                 </div>
-                                <div className="flex justify-between text-sm font-bold text-text-secondary uppercase tracking-widest">
-                                    <span>Delivery Fee</span>
-                                    <span>5,000 F</span>
-                                </div>
+
                                 <div className="flex justify-between items-end pt-4 border-t border-dashed border-border/60">
                                     <span className="text-lg font-black italic uppercase tracking-tighter">Total Paid</span>
-                                    <span className="text-3xl font-black text-primary italic">{(Number(order.totalAmount || 0) + 5000).toLocaleString()} <small className="text-xs not-italic opacity-60">FCFA</small></span>
+                                    <span className="text-3xl font-black text-primary italic">{(Number(order.totalAmount || 0)).toLocaleString()} <small className="text-xs not-italic opacity-60">FCFA</small></span>
                                 </div>
                             </div>
                         </Card>

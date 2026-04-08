@@ -128,14 +128,13 @@ export const authApi = {
      * Verify reset code and update password
      */
     resetPassword: async (
-        email: string,
-        code: string,
-        newPassword: string
+        newPassword: string,
+        confirmPassword: string
     ): Promise<PasswordResetResponse> => {
         try {
             const response = await apiClient.post<PasswordResetResponse>(
                 AUTH_ENDPOINTS.RESET_PASSWORD,
-                { email, code, new_password: newPassword, confirm_password: newPassword }
+                { new_password: newPassword, confirm_password: confirmPassword }
             );
             return response.data;
         } catch (error: any) {

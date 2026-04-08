@@ -90,13 +90,13 @@ export const PWAInstallPrompt = () => {
                                     <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                         <Share size={16} />
                                     </div>
-                                    <span>1. Tap the <span className="text-primary underline">Share</span> button</span>
+                                    <span>1. Tap the <span className="text-primary underline">Share</span> button below or above</span>
                                 </div>
                                 <div className="flex items-center gap-4 text-[10px] font-black italic uppercase tracking-widest bg-background/80 p-4 rounded-2xl border border-border/60">
                                     <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                         <PlusSquare size={16} />
                                     </div>
-                                    <span>2. select <span className="text-primary underline">Add to Home Screen</span></span>
+                                    <span>2. Scroll down and select <span className="text-primary underline">Add to Home Screen</span></span>
                                 </div>
                             </div>
                         )}

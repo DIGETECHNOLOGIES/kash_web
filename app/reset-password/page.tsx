@@ -15,7 +15,6 @@ function ResetPasswordContent() {
     const searchParams = useSearchParams();
     const email = searchParams.get('email') || '';
 
-    const [code, setCode] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -32,11 +31,11 @@ function ResetPasswordContent() {
         setIsLoading(true);
         setError(null);
         try {
-            await authApi.resetPassword(email, code, newPassword);
+            await authApi.resetPassword(newPassword, confirmPassword);
             setIsSuccess(true);
             setTimeout(() => router.push('/login'), 3000);
         } catch (err: any) {
-            setError(err.message || t('otp.invalidVerificationCode'));
+            setError(err.message || t('auth.failedResetPassword'));
         } finally {
             setIsLoading(false);
         }
@@ -74,23 +73,6 @@ function ResetPasswordContent() {
                                 {error}
                             </div>
                         )}
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">
-                                {t('auth.recoveryCode')}
-                            </label>
-                            <div className="relative group">
-                                <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-text-secondary group-focus-within:text-primary transition-colors" />
-                                <input
-                                    type="text"
-                                    value={code}
-                                    onChange={(e) => setCode(e.target.value)}
-                                    placeholder={t('otp.enter6Digits')}
-                                    required
-                                    className="w-full h-14 rounded-2xl bg-background border border-border pl-12 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-black italic tracking-widest"
-                                />
-                            </div>
-                        </div>
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">

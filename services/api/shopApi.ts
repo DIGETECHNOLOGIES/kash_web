@@ -47,6 +47,7 @@ interface CreateShopData {
     id_card_front: any;
     id_card_back: any;
     shop_images?: any;
+    owner_image?: any;
     images?: any[];
 }
 
@@ -110,6 +111,10 @@ export const shopApi = {
 
             if (shopData.shop_images) {
                 formData.append('shop_images', shopData.shop_images);
+            }
+
+            if (shopData.owner_image) {
+                formData.append('owner_image', shopData.owner_image);
             }
 
             if (shopData.images && Array.isArray(shopData.images)) {

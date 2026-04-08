@@ -17,8 +17,12 @@ const schema = yup.object().shape({
     username: yup.string().min(3, 'Username too short').required('Username is required'),
     email: yup.string().email('Invalid email').required('Email is required'),
     password: yup.string().min(8, 'Password too short').required('Password is required'),
-    number: yup.string().length(9, 'Phone number must be 9 digits').matches(/^[0-9]+$/, 'Must be only digits').required('Phone is required'),
+    confirmPassword: yup.string()
+        .oneOf([yup.ref('password')], 'Passwords must match')
+        .required('Please confirm your password'),
+    number: yup.string().required('Phone is required'),
     location: yup.string().required('Location is required'),
+    referral_code: yup.string(),
 });
 
 export default function RegisterPage() {
@@ -36,11 +40,14 @@ export default function RegisterPage() {
         setIsLoading(true);
         setError(null);
         try {
-            await authApi.register(data);
+            await authApi.register({
+                ...data,
+                password2: data.confirmPassword,
+            });
             setIsSuccess(true);
             setTimeout(() => {
-                router.push(`/login?email=${encodeURIComponent(data.email)}`);
-            }, 3000);
+                router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
+            }, 2000);
         } catch (err: any) {
             setError(err.message || 'Registration failed. Please try again.');
         } finally {
@@ -122,15 +129,28 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">
-                                {t('auth.password')}
-                            </label>
-                            <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary group-focus-within:text-primary transition-colors" />
-                                <input {...register('password')} type="password" placeholder="••••••••" className="w-full h-11 rounded-xl bg-background border border-border pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">
+                                    {t('auth.password')}
+                                </label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary group-focus-within:text-primary transition-colors" />
+                                    <input {...register('password')} type="password" placeholder="••••••••" className="w-full h-11 rounded-xl bg-background border border-border pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
+                                </div>
+                                {errors.password && <p className="text-[10px] text-error font-medium ml-1">{errors.password.message as string}</p>}
                             </div>
-                            {errors.password && <p className="text-[10px] text-error font-medium ml-1">{errors.password.message as string}</p>}
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">
+                                    Confirm Password
+                                </label>
+                                <div className="relative group">
+                                    <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary group-focus-within:text-primary transition-colors" />
+                                    <input {...register('confirmPassword')} type="password" placeholder="••••••••" className="w-full h-11 rounded-xl bg-background border border-border pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
+                                </div>
+                                {errors.confirmPassword && <p className="text-[10px] text-error font-medium ml-1">{errors.confirmPassword.message as string}</p>}
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -155,6 +175,17 @@ export default function RegisterPage() {
                                 </div>
                                 {errors.location && <p className="text-[10px] text-error font-medium ml-1">{errors.location.message as string}</p>}
                             </div>
+                        </div>
+
+                        <div className="space-y-1.5 w-full md:w-1/2 pr-0 md:pr-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">
+                                Referral Code (Optional)
+                            </label>
+                            <div className="relative group">
+                                <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary group-focus-within:text-primary transition-colors" />
+                                <input {...register('referral_code')} placeholder="KASH-123" className="w-full h-11 rounded-xl bg-background border border-border pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
+                            </div>
+                            {errors.referral_code && <p className="text-[10px] text-error font-medium ml-1">{errors.referral_code.message as string}</p>}
                         </div>
 
                         <div className="flex items-center gap-2 py-2">
