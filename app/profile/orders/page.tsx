@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 export default function OrdersPage() {
     const { t } = useTranslation();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'delivered'>('all');
+    const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'delivered' | 'invoice'>('all');
 
     const { data: ordersData, isLoading } = useQuery({
         queryKey: ['orders'],
@@ -37,7 +37,7 @@ export default function OrdersPage() {
     });
 
     const getStatusIcon = (status: string) => {
-        switch (status.toUpperCase()) {
+        switch (status?.toUpperCase()) {
             case 'PENDING': return Clock;
             case 'PROCESSING': return Package;
             case 'SHIPPED': return Truck;
@@ -48,7 +48,7 @@ export default function OrdersPage() {
     };
 
     const getStatusColor = (status: string) => {
-        switch (status.toUpperCase()) {
+        switch (status?.toUpperCase()) {
             case 'PENDING': return 'warning';
             case 'PROCESSING': return 'info';
             case 'SHIPPED': return 'primary';
@@ -61,8 +61,9 @@ export default function OrdersPage() {
     const orders = ordersData?.results || [];
     const filteredOrders = orders.filter(o => {
         if (activeTab === 'all') return true;
-        if (activeTab === 'pending') return ['PENDING', 'PROCESSING', 'SHIPPED'].includes(o.status.toUpperCase());
-        if (activeTab === 'delivered') return o.status.toUpperCase() === 'DELIVERED';
+        if (activeTab === 'pending') return ['PENDING', 'PROCESSING', 'SHIPPED'].includes(o.status?.toUpperCase() || '');
+        if (activeTab === 'delivered') return o.status?.toUpperCase() === 'DELIVERED';
+        if (activeTab === 'invoice') return o.is_invoice;
         return true;
     });
 
@@ -87,6 +88,7 @@ export default function OrdersPage() {
                             { id: 'all', label: 'All Orders' },
                             { id: 'pending', label: 'Active' },
                             { id: 'delivered', label: 'Delivered' },
+                            { id: 'invoice', label: 'Invoices' },
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -167,6 +169,14 @@ export default function OrdersPage() {
                                             </div>
 
                                             <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto mt-4 md:mt-0 pt-6 md:pt-0 border-t md:border-t-0 border-border/40">
+                                                {order.payment_status?.toUpperCase() !== 'PAID' && (
+                                                    <Button
+                                                        onClick={() => router.push(`/payment?orderId=${order.id}`)}
+                                                        className="flex-1 rounded-2xl h-12 md:h-14 font-black uppercase tracking-tight italic bg-success hover:bg-success/90"
+                                                    >
+                                                        Pay Now
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     onClick={() => router.push(`/profile/orders/${order.id}`)}
                                                     className="flex-1 rounded-2xl h-12 md:h-14 font-black uppercase tracking-tight italic"

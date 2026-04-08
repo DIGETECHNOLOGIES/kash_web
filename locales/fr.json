@@ -380,6 +380,7 @@
     "reportFailed": "Échec de l'envoi du signalement",
     "selectProduct": "Veuillez sélectionner un produit",
     "enterTotalPrice": "Veuillez entrer le prix total",
+    "createInvoice": "Créer une Facture",
     "invoiceCreated": "Facture envoyée avec succès",
     "trackManage": "Suivez et gérez vos achats professionnels",
     "looksLikeNoOrders": "Il semble que vous n'ayez pas encore de commandes.",
@@ -567,6 +568,7 @@
     "tapForInfo": "appuyez ici pour plus d'infos",
     "saySomething": "Dites quelque chose ! 👋",
     "media": "📎 Média",
+    "sendImage": "Photo & Vidéo",
     "today": "Aujourd'hui",
     "yesterday": "Hier"
   },

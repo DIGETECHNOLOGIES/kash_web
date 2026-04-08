@@ -20,10 +20,25 @@ import {
     CheckCheck,
     Check,
     X,
+    FilePlus,
+    ShoppingCart,
+    Bell,
+    Video,
+    Plus,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { formatImageUrl } from '@/utils/formatters';
+import { formatImageUrl, formatCurrency } from '@/utils/formatters';
+import { Modal } from '@/components/common/Modal';
+import { shopApi } from '@/services/api/shopApi';
+import { productApi } from '@/services/api/productApi';
+import { orderApi } from '@/services/api/orderApi';
+import { Button } from '@/components/common/Button';
+import EmojiPicker, { Theme as EmojiTheme } from 'emoji-picker-react';
+import { toast } from 'sonner';
+import { useQueryClient as useReactQueryClient } from '@tanstack/react-query';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Conversation {
@@ -39,6 +54,7 @@ interface Conversation {
     createdAt?: string;
     unreadCount?: number;
     messages?: Message[];
+    selfRole?: 'BUYER' | 'SHOP';
 }
 
 interface Message {
@@ -109,10 +125,13 @@ export default function MessagesPage() {
     const { t } = useTranslation();
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
+    const router = useRouter();
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [inputText, setInputText] = useState('');
     const [search, setSearch] = useState('');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [activeRoleTab, setActiveRoleTab] = useState<'all' | 'BUYER' | 'SHOP'>('all');
     const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -120,6 +139,17 @@ export default function MessagesPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+    // Invoice States
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [shopProducts, setShopProducts] = useState<any[]>([]);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<any>(null);
+    const [quantity, setQuantity] = useState(1);
+    const [invoiceTotal, setInvoiceTotal] = useState(0);
+    const [isSubmittingInvoice, setIsSubmittingInvoice] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
 
     // ── Data fetching ─────────────────────────────────────────────────────────
     const { data: conversationsData, isLoading: isLoadingList } = useQuery({
@@ -167,13 +197,6 @@ export default function MessagesPage() {
         sendMutation.mutate({ content: inputText.trim() || undefined, image: imageFile || undefined });
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    };
-
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -183,15 +206,71 @@ export default function MessagesPage() {
         reader.readAsDataURL(file);
     };
 
+    const fetchShopProducts = async () => {
+        if (!user?.has_shop) return;
+        try {
+            setIsLoadingProducts(true);
+            const shop = await shopApi.userShop();
+            if (shop?.id) {
+                const res = await productApi.listProducts({ shop: Number(shop.id) });
+                setShopProducts(res.results || []);
+            }
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            toast.error(t('order.loadFailed'));
+        } finally {
+            setIsLoadingProducts(false);
+        }
+    };
+
+    const handleCreateInvoice = async () => {
+        if (!selectedProduct || !selectedId || !otherParticipant) return;
+        try {
+            setIsSubmittingInvoice(true);
+            await orderApi.createInvoice({
+                product_id: selectedProduct.id,
+                buyer_identifier: otherParticipant.id || otherParticipant.username || '',
+                quantity: quantity,
+                total: invoiceTotal,
+            });
+            toast.success(t('order.invoiceCreated'));
+            setShowInvoiceModal(false);
+            // Optionally send a message about the invoice
+            sendMutation.mutate({ content: `[Invoice Shared: ${selectedProduct.name} - ${formatCurrency(invoiceTotal)}]` });
+        } catch (error: any) {
+            toast.error(error.message || t('common.error'));
+        } finally {
+            setIsSubmittingInvoice(false);
+        }
+    };
+
+    const handleEmojiClick = (emojiData: any) => {
+        setInputText(prev => prev + emojiData.emoji);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     // ── Data processing ───────────────────────────────────────────────────────
     const conversations: Conversation[] = conversationsData?.results || [];
+    const filteredByRole = conversations.filter(c => {
+        if (activeRoleTab === 'all') return true;
+        return c.selfRole === activeRoleTab;
+    });
 
     const filteredConversations = search
-        ? conversations.filter(c => {
+        ? filteredByRole.filter(c => {
             const name = c.otherParticipant?.name || c.otherParticipant?.username || '';
             return name.toLowerCase().includes(search.toLowerCase());
         })
-        : conversations;
+        : filteredByRole;
 
     const messages: Message[] = activeConversation?.messages
         ? [...activeConversation.messages].reverse()
@@ -208,27 +287,61 @@ export default function MessagesPage() {
                 <aside className={cn('wa-sidebar', mobileView === 'chat' && 'wa-sidebar--mobile-hidden')}>
                     {/* Header */}
                     <div className="wa-sidebar-header">
-                        <button className="wa-hdr-btn text-white"><MoreVertical size={20} /></button>
-                        <h1 className="wa-sidebar-title text-white flex-1 text-center font-black italic tracking-tighter uppercase">KASH</h1>
-                        <div className="flex gap-1">
-                            <button className="wa-hdr-btn text-white"><Search size={18} /></button>
-                            <ConversationAvatar participant={{ name: user?.username }} size={32} />
+                        <div className="flex items-center gap-4 w-full">
+                            <h1 className="text-xl font-black italic tracking-tighter uppercase flex-1 text-white">Messages</h1>
+                            <div className="flex items-center gap-4">
+                                <Search size={22} className="text-white cursor-pointer" />
+                                <ShoppingCart size={22} className="text-white cursor-pointer" />
+                                <div className="relative">
+                                    <Bell size={22} className="text-white cursor-pointer" />
+                                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white border-2 border-primary font-bold">3</span>
+                                </div>
+                                <MoreVertical size={22} className="text-white cursor-pointer" />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Search */}
-                    <div className="wa-search-wrap">
-                        <Search className="wa-search-icon" size={15} />
-                        <input
-                            className="wa-search-input"
-                            placeholder={t('messages.searchConversations')}
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        />
+                    {/* Search Bar */}
+                    <div className="px-4 py-2 bg-white">
+                        <div className="flex items-center gap-2 bg-[#f0f2f5] px-4 py-2 rounded-xl">
+                            <Search size={16} className="text-text-secondary" />
+                            <input
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder={t('messages.searchConversations')}
+                                className="bg-transparent border-none focus:ring-0 text-sm w-full"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex border-b border-border bg-white pt-2">
+                        {[
+                            { id: 'all', label: t('common.all') },
+                            { id: 'BUYER', label: t('messages.asUser') },
+                            { id: 'SHOP', label: t('messages.asShop') }
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveRoleTab(tab.id as any)}
+                                className={cn(
+                                    "flex-1 py-4 text-sm font-black uppercase italic tracking-tight transition-all relative",
+                                    activeRoleTab === tab.id ? "text-primary" : "text-text-secondary"
+                                )}
+                            >
+                                {tab.label}
+                                {activeRoleTab === tab.id && (
+                                    <motion.div
+                                        layoutId="activeRoleTab"
+                                        className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"
+                                    />
+                                )}
+                            </button>
+                        ))}
                     </div>
 
                     {/* List */}
-                    <div className="wa-conv-list">
+                    <div className="wa-conv-list bg-[#f8f9fa]">
                         {isLoadingList ? (
                             Array(5).fill(0).map((_, i) => (
                                 <div key={i} className="wa-conv-skeleton" />
@@ -249,24 +362,27 @@ export default function MessagesPage() {
                                         onClick={() => handleSelectConversation(conv.id)}
                                     >
                                         <div className="wa-conv-avatar">
-                                            <ConversationAvatar participant={conv.otherParticipant} size={48} />
+                                            <ConversationAvatar participant={conv.otherParticipant} size={56} />
                                             {(conv.unreadCount ?? 0) > 0 && (
                                                 <span className="wa-conv-unread-dot" />
                                             )}
                                         </div>
-                                        <div className="wa-conv-info">
+                                        <div className="wa-conv-info flex-1">
                                             <div className="wa-conv-top">
                                                 <span className="wa-conv-name">
                                                     {conv.otherParticipant?.name || conv.otherParticipant?.username || 'Unknown'}
                                                 </span>
                                                 <span className="wa-conv-time">
-                                                    {ts ? format(new Date(ts), 'HH:mm') : ''}
+                                                    {ts ? format(new Date(ts), 'MMM dd, yyyy, h:mm a') : ''}
                                                 </span>
                                             </div>
-                                            <div className="wa-conv-bottom">
-                                                <span className="wa-conv-preview">
-                                                    {conv.lastMessage?.content || t('messages.media')}
-                                                </span>
+                                            <div className="wa-conv-bottom mt-1">
+                                                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                                    {conv.unreadCount === 0 && <CheckCheck size={14} className="text-[#34b7f1]" />}
+                                                    <span className="wa-conv-preview">
+                                                        {conv.lastMessage?.content || t('messages.media')}
+                                                    </span>
+                                                </div>
                                                 {(conv.unreadCount ?? 0) > 0 && (
                                                     <span className="wa-unread-badge">{conv.unreadCount}</span>
                                                 )}
@@ -292,27 +408,68 @@ export default function MessagesPage() {
                     ) : (
                         <>
                             {/* Chat Header */}
-                            <div className="wa-chat-header">
+                            <div className="wa-chat-header shadow-sm">
                                 <div className="wa-chat-header-left">
                                     <button className="wa-back-btn text-white" onClick={() => setMobileView('list')}>
                                         <ChevronLeft size={22} />
                                     </button>
-                                    <ConversationAvatar participant={otherParticipant} size={40} />
+                                    <ConversationAvatar participant={otherParticipant} size={48} />
                                     <div className="wa-chat-info">
-                                        <span className="wa-chat-name text-white">
-                                            {otherParticipant?.name || otherParticipant?.username || t('common.loading')}
-                                        </span>
-                                        <span className="wa-chat-sub text-white/70">{t('messages.tapForInfo')}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="wa-chat-name text-white">
+                                                {otherParticipant?.name || otherParticipant?.username || t('common.loading')}
+                                            </span>
+                                            <span className="px-2 py-0.5 rounded-md bg-white/20 text-[10px] font-bold text-white uppercase italic">Buyer</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-[#ffa000] animate-pulse" />
+                                            <span className="wa-chat-sub text-white/80 font-bold uppercase italic text-[10px]">Connecting...</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="wa-chat-header-actions">
-                                    <button className="wa-hdr-btn text-white"><Phone size={20} /></button>
-                                    <button className="wa-hdr-btn text-white"><MoreVertical size={20} /></button>
+                                <div className="wa-chat-header-actions relative">
+                                    <button className="wa-hdr-btn text-white w-10 h-10 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors">
+                                        <Phone size={20} />
+                                    </button>
+                                    <button className="wa-hdr-btn text-white w-10 h-10 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors hidden md:flex">
+                                        <Video size={20} />
+                                    </button>
+                                    <button
+                                        className="wa-hdr-btn text-white w-10 h-10 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors"
+                                        onClick={() => setShowMenu(!showMenu)}
+                                    >
+                                        <MoreVertical size={20} />
+                                    </button>
+
+                                    {showMenu && (
+                                        <div className="absolute top-12 right-0 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl p-1.5 w-64 z-[100] border border-border/40 animate-in fade-in zoom-in duration-200">
+                                            {user?.has_shop && (
+                                                <button
+                                                    onClick={() => {
+                                                        setShowMenu(false);
+                                                        setShowInvoiceModal(true);
+                                                        fetchShopProducts();
+                                                    }}
+                                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#f0f2f5] text-[#111b21] transition-all text-left"
+                                                >
+                                                    <FilePlus size={20} className="text-text-secondary" />
+                                                    <span className="text-sm font-medium">Create an Invoice</span>
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => setShowMenu(false)}
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#f0f2f5] text-red-500 transition-all text-left"
+                                            >
+                                                <X size={20} />
+                                                <span className="text-sm font-medium">{t('common.close') || 'Close Menu'}</span>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Messages Area */}
-                            <div className="wa-messages">
+                            <div className="wa-messages bg-[#f8f9fa]">
                                 <div className="wa-messages-bg" />
 
                                 {isLoadingChat ? (
@@ -328,13 +485,6 @@ export default function MessagesPage() {
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Date label for first visible message group */}
-                                        {messages[0]?.timestamp && (
-                                            <div className="wa-date-sep">
-                                                <span>{formatDate(messages[0].timestamp, t)}</span>
-                                            </div>
-                                        )}
-
                                         {messages.map((msg, idx) => {
                                             const isOwn =
                                                 String(msg.sender) === String(user?.id) ||
@@ -352,16 +502,18 @@ export default function MessagesPage() {
                                                         </div>
                                                     )}
                                                     <div className={cn('wa-msg-row', isOwn ? 'wa-msg-row--out' : 'wa-msg-row--in')}>
-                                                        {/* Incoming avatar */}
                                                         {!isOwn && (
                                                             <ConversationAvatar participant={otherParticipant} size={28} />
                                                         )}
 
-                                                        <div className={cn('wa-bubble', isOwn ? 'wa-bubble--out' : 'wa-bubble--in')}>
-                                                            {/* Tail */}
+                                                        <div className={cn('wa-bubble', isOwn ? 'wa-bubble--out' : 'wa-bubble--in', msg.image && 'p-1')}>
+                                                            {!isOwn && (
+                                                                <div className="text-[10px] font-black text-primary uppercase italic mb-1 px-1">
+                                                                    {msg.sender_display_name || otherParticipant?.name || 'User'}
+                                                                </div>
+                                                            )}
                                                             <div className={cn('wa-bubble-tail', isOwn ? 'wa-bubble-tail--out' : 'wa-bubble-tail--in')} />
 
-                                                            {/* Reply preview */}
                                                             {msg.replied_to_data && (
                                                                 <div className={cn('wa-reply-preview', isOwn ? 'wa-reply-preview--out' : 'wa-reply-preview--in')}>
                                                                     <span className="wa-reply-name">{msg.replied_to_data.sender_username}</span>
@@ -369,29 +521,32 @@ export default function MessagesPage() {
                                                                 </div>
                                                             )}
 
-                                                            {/* Image */}
                                                             {msg.image && (
-                                                                <a href={formatImageUrl(msg.image)} target="_blank" rel="noreferrer">
+                                                                <a href={formatImageUrl(msg.image)} target="_blank" rel="noreferrer" className="block relative bg-primary/10 rounded-xl overflow-hidden">
                                                                     <img
                                                                         src={formatImageUrl(msg.image)}
                                                                         alt="attachment"
-                                                                        className="wa-bubble-img"
+                                                                        className="wa-bubble-img mb-0 border-none"
                                                                     />
+                                                                    <div className="absolute bottom-1 right-2 flex items-center gap-1 bg-black/30 backdrop-blur-md px-2 py-0.5 rounded-full">
+                                                                        <span className="text-[9px] text-white font-bold">{formatTime(msg.timestamp)}</span>
+                                                                        {isOwn && <CheckCheck size={12} className="text-white" />}
+                                                                    </div>
                                                                 </a>
                                                             )}
 
-                                                            {/* Text */}
                                                             {msg.content && (
-                                                                <p className="wa-bubble-text">{msg.content}</p>
+                                                                <p className={cn("wa-bubble-text", isOwn ? "text-white" : "text-[#111b21]")}>{msg.content}</p>
                                                             )}
 
-                                                            {/* Footer */}
-                                                            <div className="wa-bubble-footer">
-                                                                <span className="wa-bubble-time">{formatTime(msg.timestamp)}</span>
-                                                                {isOwn && (
-                                                                    <CheckCheck size={14} className={cn('wa-ticks', msg.is_read ? 'wa-ticks--read' : 'wa-ticks--sent')} />
-                                                                )}
-                                                            </div>
+                                                            {!msg.image && (
+                                                                <div className="wa-bubble-footer">
+                                                                    <span className={cn("wa-bubble-time", isOwn ? "text-white/70" : "text-text-secondary")}>{formatTime(msg.timestamp)}</span>
+                                                                    {isOwn && (
+                                                                        <CheckCheck size={14} className={cn('wa-ticks', msg.is_read ? 'text-[#34b7f1]' : 'text-white/70')} />
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </React.Fragment>
@@ -402,18 +557,18 @@ export default function MessagesPage() {
                                 )}
                             </div>
 
-                            {/* Image preview */}
-                            {imagePreview && (
-                                <div className="wa-img-preview">
-                                    <img src={imagePreview} alt="preview" className="wa-img-preview-thumb" />
-                                    <button className="wa-img-preview-remove" onClick={() => { setImageFile(null); setImagePreview(null); }}>
-                                        <X size={16} />
-                                    </button>
-                                </div>
-                            )}
-
                             {/* Input Area */}
-                            <div className="wa-input-area">
+                            <div className="wa-input-area relative">
+                                {showEmojiPicker && (
+                                    <div ref={emojiPickerRef} className="absolute bottom-20 left-4 z-[100] shadow-2xl border border-border rounded-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+                                        <EmojiPicker
+                                            onEmojiClick={handleEmojiClick}
+                                            autoFocusSearch={false}
+                                            width={320}
+                                            height={400}
+                                        />
+                                    </div>
+                                )}
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -421,41 +576,79 @@ export default function MessagesPage() {
                                     className="hidden"
                                     onChange={handleFileSelect}
                                 />
-                                <form className="wa-input-row" onSubmit={handleSend}>
-                                    <button type="button" className="wa-tool-btn"><Smile size={22} /></button>
-                                    <button
-                                        type="button"
-                                        className="wa-tool-btn"
-                                        onClick={() => fileInputRef.current?.click()}
-                                    >
-                                        <Paperclip size={22} />
-                                    </button>
-                                    <div className="wa-input-wrap">
-                                        <textarea
-                                            ref={textareaRef}
-                                            className="wa-textarea"
+                                <form className="flex items-center gap-2 px-2 py-2" onSubmit={handleSend}>
+                                    <div className="relative shrink-0">
+                                        <button
+                                            type="button"
+                                            className="h-11 w-11 rounded-full bg-[#f0f2f5] flex items-center justify-center text-primary group hover:bg-primary hover:text-white transition-all shadow-sm"
+                                            onClick={() => setShowMenu(!showMenu)}
+                                        >
+                                            <Plus size={24} className={cn("transition-transform duration-300", showMenu && "rotate-45")} />
+                                        </button>
+                                        {showMenu && (
+                                            <div className="absolute bottom-14 left-0 bg-white shadow-2xl rounded-3xl p-3 w-64 z-[110] border border-border animate-in slide-in-from-bottom-2 duration-300">
+                                                <button
+                                                    onClick={() => {
+                                                        setShowMenu(false);
+                                                        fileInputRef.current?.click();
+                                                    }}
+                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-primary/5 text-primary-dark transition-all text-left group"
+                                                >
+                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                                                        <ImageIcon size={20} />
+                                                    </div>
+                                                    <span className="text-sm font-black uppercase italic tracking-tight">{t('messages.sendImage') || 'Photo & Video'}</span>
+                                                </button>
+
+                                                {user?.has_shop && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setShowMenu(false);
+                                                            setShowInvoiceModal(true);
+                                                            fetchShopProducts();
+                                                        }}
+                                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-success/5 text-success-dark transition-all text-left group border-t border-border/40 mt-1"
+                                                    >
+                                                        <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center group-hover:bg-success group-hover:text-white transition-all">
+                                                            <FilePlus size={20} />
+                                                        </div>
+                                                        <span className="text-sm font-black uppercase italic tracking-tight">Create an Invoice</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1 flex items-center bg-white rounded-full px-4 h-11 border border-border/40">
+                                        <input
                                             value={inputText}
                                             onChange={e => setInputText(e.target.value)}
-                                            onKeyDown={handleKeyDown}
-                                            placeholder={t('messages.typeMessage')}
-                                            rows={1}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    handleSend();
+                                                }
+                                            }}
+                                            placeholder="Type a message..."
+                                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-0 py-2 placeholder:text-text-secondary"
                                         />
                                     </div>
+
                                     {(inputText.trim() || imageFile) ? (
                                         <button
                                             type="submit"
                                             disabled={sendMutation.isPending}
-                                            className="wa-send-btn"
+                                            className="wa-send-btn shrink-0 h-11 w-11"
                                         >
                                             {sendMutation.isPending ? (
-                                                <div className="wa-spinner" />
+                                                <div className="wa-spinner border-white/40 border-t-white" />
                                             ) : (
                                                 <Send size={20} />
                                             )}
                                         </button>
                                     ) : (
-                                        <button type="button" className="wa-send-btn">
-                                            <Mic size={20} />
+                                        <button type="button" className="shrink-0 h-11 w-11 rounded-full bg-[#f0f2f5] flex items-center justify-center text-primary group hover:bg-primary/10 transition-colors">
+                                            <Mic size={22} />
                                         </button>
                                     )}
                                 </form>
@@ -465,8 +658,88 @@ export default function MessagesPage() {
                 </main>
             </div>
 
+            <Modal
+                isOpen={showInvoiceModal}
+                onClose={() => setShowInvoiceModal(false)}
+                title={t('order.createInvoice') || 'Create Invoice'}
+                className="max-w-2xl"
+            >
+                <div className="p-8 space-y-8">
+                    <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-1">Recipient Buyer</h4>
+                        <div className="flex items-center gap-3">
+                            <ConversationAvatar participant={otherParticipant} size={32} />
+                            <span className="text-lg font-black italic uppercase tracking-tighter truncate">{otherParticipant?.name || otherParticipant?.username}</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Select Product</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {isLoadingProducts ? (
+                                Array(3).fill(0).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-surface animate-pulse" />)
+                            ) : shopProducts.map((product) => (
+                                <button
+                                    key={product.id}
+                                    onClick={() => {
+                                        setSelectedProduct(product);
+                                        setInvoiceTotal(product.price * quantity);
+                                    }}
+                                    className={cn(
+                                        "p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-2",
+                                        selectedProduct?.id === product.id ? "border-primary bg-primary/5 shadow-lg" : "border-border/40 hover:border-primary/20"
+                                    )}
+                                >
+                                    <img src={formatImageUrl(product.images)} className="h-12 w-12 rounded-lg object-cover" alt={product.name} />
+                                    <span className="text-[10px] font-bold uppercase truncate w-full">{product.name}</span>
+                                    <span className="text-[10px] font-black text-primary">{formatCurrency(product.price)}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {selectedProduct && (
+                        <div className="grid grid-cols-2 gap-6 p-6 bg-surface rounded-3xl border border-border shadow-inner">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary">Quantity</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={quantity}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 1;
+                                        setQuantity(val);
+                                        setInvoiceTotal(selectedProduct.price * val);
+                                    }}
+                                    className="w-full h-12 rounded-xl bg-background border border-border px-4 text-sm font-bold focus:border-primary focus:outline-none"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary">Total Price (XAF)</label>
+                                <input
+                                    type="number"
+                                    value={invoiceTotal}
+                                    onChange={(e) => setInvoiceTotal(parseInt(e.target.value) || 0)}
+                                    className="w-full h-12 rounded-xl bg-background border border-border px-4 text-sm font-bold focus:border-primary focus:outline-none"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="pt-4">
+                        <Button
+                            onClick={handleCreateInvoice}
+                            disabled={!selectedProduct || isSubmittingInvoice}
+                            isLoading={isSubmittingInvoice}
+                            className="w-full h-16 rounded-2xl font-black uppercase italic shadow-xl shadow-primary/20"
+                        >
+                            <ShoppingCart size={20} className="mr-2" /> Send Invoice
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
             <style jsx global>{`
-        /* ── Scoped WhatsApp-style UI ── */
         .wa-root {
           display: flex;
           height: calc(100vh - 4rem);
@@ -477,7 +750,6 @@ export default function MessagesPage() {
           padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* ─── Sidebar ─── */
         .wa-sidebar {
           width: 360px;
           min-width: 280px;
@@ -495,35 +767,6 @@ export default function MessagesPage() {
           padding: 0.85rem 1rem;
           background: #00d084;
           border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .wa-sidebar-title {
-          font-size: 1.15rem;
-          font-weight: 700;
-          color: #111b21;
-          margin: 0;
-        }
-
-        .wa-search-wrap {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          background: #f0f2f5;
-          border-bottom: 1px solid #e9edef;
-        }
-
-        .wa-search-icon { color: #54656f; flex-shrink: 0; }
-
-        .wa-search-input {
-          flex: 1;
-          border: none;
-          background: #fff;
-          border-radius: 999px;
-          padding: 0.45rem 1rem;
-          font-size: 0.85rem;
-          outline: none;
-          color: #111b21;
         }
 
         .wa-conv-list { flex: 1; overflow-y: auto; }
@@ -597,10 +840,9 @@ export default function MessagesPage() {
           font-weight: 700; padding: 0 4px; flex-shrink: 0;
         }
 
-        /* ─── Chat Panel ─── */
         .wa-chat {
           flex: 1; display: flex; flex-direction: column;
-          background: #efeae2; overflow: hidden; position: relative;
+          background: #f8f9fa; overflow: hidden; position: relative;
         }
 
         .wa-chat--empty-state { background: #f0f2f5; }
@@ -628,7 +870,6 @@ export default function MessagesPage() {
           margin: 0; max-width: 280px; text-align: center;
         }
 
-        /* ─── Chat Header ─── */
         .wa-chat-header {
           display: flex; align-items: center;
           justify-content: space-between;
@@ -643,23 +884,21 @@ export default function MessagesPage() {
 
         .wa-back-btn {
           display: none; background: none; border: none;
-          color: #54656f; cursor: pointer; padding: 0.25rem; border-radius: 50%;
+          color: #fff; cursor: pointer; padding: 0.25rem; border-radius: 50%;
         }
 
         .wa-chat-info { display: flex; flex-direction: column; min-width: 0; }
-        .wa-chat-name { font-weight: 600; font-size: 0.9375rem; color: #111b21; truncate; }
-        .wa-chat-sub { font-size: 0.72rem; color: #667781; }
+        .wa-chat-name { font-weight: 600; font-size: 0.9375rem; color: #fff; }
+        .wa-chat-sub { font-size: 0.72rem; color: #fff; }
 
         .wa-chat-header-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
         .wa-hdr-btn {
-          background: none; border: none; color: #54656f;
+          background: none; border: none; color: #fff;
           cursor: pointer; width: 40px; height: 40px;
           display: flex; align-items: center; justify-content: center;
           border-radius: 50%;
         }
-        .wa-hdr-btn:hover { background: rgba(0,0,0,0.07); }
 
-        /* ─── Messages ─── */
         .wa-messages {
           flex: 1; overflow-y: auto; position: relative;
           padding: 0.5rem 6%; display: flex; flex-direction: column; gap: 0.15rem;
@@ -667,7 +906,7 @@ export default function MessagesPage() {
 
         .wa-messages-bg {
           position: fixed; inset: 0; pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d9d9d9' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d9d9d9' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
           z-index: 0; opacity: 0.5;
         }
 
@@ -710,13 +949,13 @@ export default function MessagesPage() {
           word-break: break-word;
         }
         .wa-bubble--in { background: #fff; border-top-left-radius: 2px; }
-        .wa-bubble--out { background: #d9fdd3; border-top-right-radius: 2px; }
+        .wa-bubble--out { background: #00d084; border-top-right-radius: 2px; box-shadow: 0 4px 15px rgba(0,208,132,0.25); }
 
         .wa-bubble-tail {
           position: absolute; top: 0; width: 0; height: 0;
         }
         .wa-bubble-tail--in { left: -8px; border-right: 8px solid #fff; border-top: 8px solid transparent; }
-        .wa-bubble-tail--out { right: -8px; border-left: 8px solid #d9fdd3; border-top: 8px solid transparent; }
+        .wa-bubble-tail--out { right: -8px; border-left: 8px solid #00d084; border-top: 8px solid transparent; }
 
         .wa-bubble-img {
           max-width: 260px; width: 100%; border-radius: 8px;

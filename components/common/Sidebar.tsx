@@ -213,7 +213,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                             {isAuthenticated && (
                                 <>
-                                    <MenuItem icon={Package} label={t('sidebar.myOrders')} href="/profile/orders" />
+                                    <MenuItem
+                                        icon={Package}
+                                        label={user?.has_shop ? t('sidebar.shopOrders') : t('sidebar.myOrders')}
+                                        href={user?.has_shop ? '/profile/shop/orders' : '/profile/orders'}
+                                    />
                                     <MenuItem icon={Wallet} label={t('sidebar.wallet')} href="/profile/wallet" />
                                     <MenuItem icon={Bell} label={t('notifications.title')} href="/profile/notifications" badge={notificationData?.count > 0 ? notificationData.count : undefined} />
                                     <MenuItem icon={MessageSquare} label={t('sidebar.messages')} href="/messages" badge={unreadMessages > 0 ? unreadMessages : undefined} />

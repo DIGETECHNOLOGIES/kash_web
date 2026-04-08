@@ -379,6 +379,7 @@
     "reportFailed": "Failed to submit report",
     "selectProduct": "Please select a product",
     "enterTotalPrice": "Please enter total price",
+    "createInvoice": "Create Invoice",
     "invoiceCreated": "Invoice sent successfully",
     "trackManage": "Track and manage your professional purchases",
     "looksLikeNoOrders": "Looks like you don't have any orders yet.",
@@ -566,6 +567,7 @@
     "tapForInfo": "tap here for more info",
     "saySomething": "Say something! 👋",
     "media": "📎 Media",
+    "sendImage": "Photo & Video",
     "today": "Today",
     "yesterday": "Yesterday"
   },

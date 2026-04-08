@@ -222,7 +222,21 @@ export default function OrderDetailPage() {
                                 </div>
                             </div>
 
-                            {order.status.toUpperCase() !== 'DELIVERED' && order.status.toUpperCase() !== 'CANCELLED' && (
+                            {order.payment_status?.toUpperCase() !== 'PAID' && (
+                                <div className="mt-8">
+                                    <Button
+                                        onClick={() => router.push(`/payment?orderId=${order.id}`)}
+                                        className="w-full rounded-2xl h-14 bg-success hover:bg-success/90 font-black uppercase italic shadow-xl shadow-success/20"
+                                    >
+                                        <CreditCard size={20} className="mr-2" /> Pay Now
+                                    </Button>
+                                    <p className="text-[10px] text-center text-text-secondary font-bold uppercase italic mt-4">
+                                        Secure your order with KASH Escrow Payment
+                                    </p>
+                                </div>
+                            )}
+
+                            {order.payment_status?.toUpperCase() === 'PAID' && order.status.toUpperCase() !== 'DELIVERED' && order.status.toUpperCase() !== 'CANCELLED' && (
                                 <div className="mt-12">
                                     <Button
                                         onClick={() => setIsConfirmOpen(true)}

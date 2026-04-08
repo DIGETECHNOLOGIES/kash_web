@@ -6,15 +6,23 @@ import { usePathname } from 'next/navigation';
 import { Home, MessageSquare, User, Package, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/authStore';
 
 export function BottomNav() {
     const pathname = usePathname();
     const { t } = useTranslation();
 
+    const { user } = useAuthStore();
+    const hasShop = user?.has_shop;
+
     const tabs = [
         { name: t('sidebar.home'), icon: Home, href: '/' },
         { name: t('sidebar.messages'), icon: MessageSquare, href: '/messages' },
-        { name: t('sidebar.myOrders'), icon: Package, href: '/profile/orders' },
+        {
+            name: hasShop ? t('sidebar.shopOrders') : t('sidebar.myOrders'),
+            icon: Package,
+            href: hasShop ? '/profile/shop/orders' : '/profile/orders'
+        },
         { name: t('sidebar.wallet'), icon: Wallet, href: '/profile/wallet' },
         { name: t('sidebar.account'), icon: User, href: '/profile' },
     ];
