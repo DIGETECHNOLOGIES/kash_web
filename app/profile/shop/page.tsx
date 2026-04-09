@@ -22,7 +22,6 @@ import {
     ShieldCheck,
     Plus,
     Package,
-    BarChart3,
     Settings,
     Camera,
     Upload,

@@ -127,7 +127,7 @@ export default function HomePage() {
                       variant="outline"
                       size="lg"
                       className="rounded-2xl border-white/40 text-white hover:bg-white/10 px-8 h-14 uppercase italic tracking-widest"
-                      onClick={() => router.push('/shops/create')}
+                      onClick={() => router.push('/profile/shop')}
                     >
                       {t('shop.createShop') || 'Start Selling'}
                     </Button>
