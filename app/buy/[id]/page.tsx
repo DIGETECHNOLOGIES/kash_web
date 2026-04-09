@@ -197,13 +197,13 @@ export default function BuyPage() {
                                         <span className="text-slate-400">Subtotal</span>
                                         <span className="font-bold">{product.price.toLocaleString()} FCFA</span>
                                     </div>
-                                    <div className="flex justify-between text-sm">
+                                    {/* <div className="flex justify-between text-sm">
                                         <span className="text-slate-400">Delivery Fee</span>
                                         <span className="font-bold">1,500 FCFA</span>
-                                    </div>
+                                    </div> */}
                                     <div className="pt-4 border-t border-white/10 flex justify-between items-end">
                                         <span className="text-xs font-black uppercase tracking-widest">Total</span>
-                                        <span className="text-3xl font-black italic">{(product.price + 1500).toLocaleString()} <small className="text-xs font-bold opacity-50">FCFA</small></span>
+                                        <span className="text-3xl font-black italic">{(product.price).toLocaleString()} <small className="text-xs font-bold opacity-50">FCFA</small></span>
                                     </div>
                                 </div>
 
