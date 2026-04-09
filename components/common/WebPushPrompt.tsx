@@ -5,10 +5,18 @@ import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { attachForegroundPushListener, enableWebPushNotifications } from '@/lib/webPush';
 
+function isIOSDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  const iOS = /iPad|iPhone|iPod/.test(ua);
+  const iPadOS13Plus = navigator.platform === 'MacIntel' && (navigator.maxTouchPoints ?? 0) > 1;
+  return iOS || iPadOS13Plus;
+}
+
 function isStandaloneDisplayMode(): boolean {
   if (typeof window === 'undefined') return false;
   // iOS Safari
-  const nav: any = navigator;
+  const nav = navigator as Navigator & { standalone?: boolean };
   if (nav.standalone) return true;
   // Standard
   return window.matchMedia?.('(display-mode: standalone)')?.matches ?? false;
@@ -18,12 +26,18 @@ export function WebPushPrompt() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const iosDevice = useMemo(() => isIOSDevice(), []);
+  const standalone = useMemo(() => isStandaloneDisplayMode(), []);
+  const needsInstallOnIOS = iosDevice && !standalone;
+
   const canPrompt = useMemo(() => {
     if (typeof window === 'undefined') return false;
     if (process.env.NODE_ENV !== 'production') return false;
     if (!('Notification' in window)) return false;
     if (!('serviceWorker' in navigator)) return false;
-    if (!isStandaloneDisplayMode()) return false;
+    // Most browsers: only prompt inside the installed app.
+    // iOS: show the prompt even outside standalone, so we can guide install.
+    if (!iosDevice && !standalone) return false;
 
     // Browsers require a user gesture to trigger the permission UI.
     // We only show a prompt when permission is still undecided.
@@ -53,6 +67,10 @@ export function WebPushPrompt() {
   };
 
   const handleEnable = async () => {
+    if (needsInstallOnIOS) {
+      setOpen(false);
+      return;
+    }
     setBusy(true);
     try {
       const token = await enableWebPushNotifications();
@@ -78,7 +96,9 @@ export function WebPushPrompt() {
     >
       <div className="p-8 space-y-6">
         <p className="text-sm font-medium text-text-secondary leading-relaxed">
-          To receive order updates and new message alerts on your installed app, allow notifications.
+          {needsInstallOnIOS
+            ? 'On iPhone/iPad, you must Add to Home Screen first, then reopen the installed app to enable notifications.'
+            : 'To receive order updates and new message alerts on your installed app, allow notifications.'}
         </p>
 
         <div className="flex gap-3">
@@ -86,8 +106,9 @@ export function WebPushPrompt() {
             className="flex-1 h-12 rounded-2xl font-black uppercase italic"
             onClick={handleEnable}
             isLoading={busy}
+            disabled={needsInstallOnIOS}
           >
-            Allow notifications
+            {needsInstallOnIOS ? 'Install app first' : 'Allow notifications'}
           </Button>
           <Button
             variant="outline"
