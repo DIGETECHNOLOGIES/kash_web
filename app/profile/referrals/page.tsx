@@ -62,7 +62,7 @@ export default function ReferralsPage() {
     const referralLink = useMemo(() => {
         if (typeof window === 'undefined') return '';
         if (!referralCode) return '';
-        return `${window.location.origin}/register?ref=${encodeURIComponent(referralCode)}`;
+        return `${window.location.origin}/ref/${encodeURIComponent(referralCode)}`;
     }, [referralCode]);
 
     const copyToClipboard = async () => {

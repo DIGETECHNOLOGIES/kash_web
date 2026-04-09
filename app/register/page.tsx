@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -28,13 +29,20 @@ const schema = yup.object().shape({
 export default function RegisterPage() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
     });
+
+    useEffect(() => {
+        const referralFromQuery = searchParams.get('referral_code') || searchParams.get('ref') || '';
+        if (!referralFromQuery) return;
+        setValue('referral_code', referralFromQuery, { shouldValidate: true, shouldDirty: true });
+    }, [searchParams, setValue]);
 
     const onSubmit = async (data: any) => {
         setIsLoading(true);

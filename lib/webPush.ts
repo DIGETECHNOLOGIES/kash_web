@@ -73,11 +73,19 @@ export async function enableWebPushNotifications(): Promise<string | null> {
     return null;
   }
 
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await navigator.serviceWorker.getRegistration();
+  if (!registration) {
+    toast.error('Service worker not found');
+    return null;
+  }
+
   const token = await getToken(messaging, {
     vapidKey,
     serviceWorkerRegistration: registration,
-  }).catch(() => null);
+  }).catch((err) => {
+    console.error('Push token error:', err);
+    return null;
+  });
 
   if (!token) {
     toast.error('Could not get push token');
