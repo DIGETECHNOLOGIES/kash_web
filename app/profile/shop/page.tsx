@@ -202,9 +202,16 @@ export default function ShopManagePage() {
                                     <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Region</label>
                                     <select {...register('region')} className="w-full h-14 rounded-2xl bg-background border border-border px-6 text-sm focus:border-primary focus:outline-none transition-all font-bold italic">
                                         <option value="">Select Region</option>
-                                        <option value="Litoral">Littoral</option>
-                                        <option value="Centre">Centre</option>
-                                        <option value="West">West</option>
+                                        <option value="AD">Adamawa</option>
+                                        <option value="CE">Centre</option>
+                                        <option value="E">East</option>
+                                        <option value="FN">Far-North</option>
+                                        <option value="LT">Littoral</option>
+                                        <option value="NW">North-West</option>
+                                        <option value="N">North</option>
+                                        <option value="W">West</option>
+                                        <option value="S">South</option>
+                                        <option value="SW">South-West</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
