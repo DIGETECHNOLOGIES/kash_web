@@ -34,6 +34,7 @@ export default function OrderDetailPage() {
     const queryClient = useQueryClient();
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [deliveryCode, setDeliveryCode] = useState('');
+    const [hasCopiedCode, setHasCopiedCode] = useState(false);
 
     const { data: order, isLoading } = useQuery({
         queryKey: ['order', id],
@@ -47,6 +48,18 @@ export default function OrderDetailPage() {
             setIsConfirmOpen(false);
         },
     });
+
+    const copyDeliveryCode = async () => {
+        const code = order?.delivery_code;
+        if (!code) return;
+        try {
+            await navigator.clipboard.writeText(code);
+            setHasCopiedCode(true);
+            window.setTimeout(() => setHasCopiedCode(false), 1500);
+        } catch (e) {
+            console.error('Failed to copy delivery code', e);
+        }
+    };
 
     const getStatusIcon = (status: string) => {
         switch (status?.toUpperCase()) {
@@ -218,6 +231,24 @@ export default function OrderDetailPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {order.delivery_code && (
+                                <div className="mt-10 pt-8 border-t border-border/40">
+                                    <h5 className="text-[10px] font-bold uppercase tracking-widest text-text-secondary mb-3 italic">Delivery Confirmation Code</h5>
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                                        <div className="flex-1 h-14 rounded-2xl bg-background border border-border/60 px-6 flex items-center justify-center text-2xl font-black italic tracking-[0.3em] text-primary">
+                                            {order.delivery_code}
+                                        </div>
+                                        <Button
+                                            onClick={copyDeliveryCode}
+                                            variant="outline"
+                                            className="rounded-2xl h-14 border-border/60 font-black uppercase italic"
+                                        >
+                                            {hasCopiedCode ? 'Copied' : 'Copy code'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
 
                             {order.payment_status?.toUpperCase() !== 'PAID' && (
                                 <div className="mt-8">
