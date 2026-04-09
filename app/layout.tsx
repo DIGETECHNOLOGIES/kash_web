@@ -58,6 +58,7 @@ export const viewport: Viewport = {
 
 import { PWAInstallPrompt } from '@/components/common/PWAInstallPrompt';
 import { DeepLinkRedirect } from '@/components/common/DeepLinkRedirect';
+import { WebPushPrompt } from '@/components/common/WebPushPrompt';
 
 export default function RootLayout({
   children,
@@ -70,6 +71,7 @@ export default function RootLayout({
         <RootProvider>
           <DeepLinkRedirect />
           {children}
+          <WebPushPrompt />
           <PWAInstallPrompt />
         </RootProvider>
       </body>

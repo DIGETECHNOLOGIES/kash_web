@@ -18,6 +18,7 @@ import { Badge } from '@/components/common/Badge';
 import { ProductCard } from '@/components/common/ProductCard';
 import {
     Store,
+    BarChart3,
     ChevronLeft,
     ShieldCheck,
     Plus,

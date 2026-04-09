@@ -57,7 +57,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
 
-  const rawImage = shop.shop_images || shop.image || shop.shop_image;
+  const rawImage =
+    (Array.isArray(shop.images) && shop.images.length > 0
+      ? shop.images
+      : Array.isArray(shop.shop_images) && shop.shop_images.length > 0
+        ? shop.shop_images
+        : shop.images || shop.shop_images || shop.image || shop.shop_image);
   const imageUrl = resolveImageUrl(rawImage);
 
   const title = `${shop.name} | KASH Shop`;

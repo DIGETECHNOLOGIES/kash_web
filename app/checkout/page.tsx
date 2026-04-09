@@ -9,6 +9,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
+import { Modal } from '@/components/common/Modal';
 import {
     ShieldCheck,
     MapPin,
@@ -41,6 +42,8 @@ export default function CheckoutPage() {
     const [paymentMethod, setPaymentMethod] = useState<'MTN' | 'ORANGE' | null>(null);
     const [phone, setPhone] = useState(user?.number || '');
     const [location, setLocation] = useState(user?.location || '');
+    const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+    const [paymentPopup, setPaymentPopup] = useState<{ message: string; transactionIds: string[] } | null>(null);
 
     const subtotal = getTotal();
     const total = subtotal;
@@ -68,21 +71,28 @@ export default function CheckoutPage() {
             }
 
             // 2. Initiate Payment
+            const txIds: string[] = [];
+            let lastMessage = '';
             for (const order of createdOrders) {
                 const orderSubtotal = Number(order.totalAmount || order.total || 0);
                 const paymentAmount = orderSubtotal;
 
-                await paymentApi.initiatePayment({
+                const res = await paymentApi.initiatePayment({
                     amount: String(paymentAmount),
                     provider: paymentMethod,
                     phone_number: phone,
                     order_ids: [Number(order.id)]
                 });
-                toast.info(t('checkout.paymentRequestSent', { item: order.product_name || 'Item' }));
+
+                if (res?.transaction_id) txIds.push(res.transaction_id);
+                if (res?.message) lastMessage = res.message;
             }
 
-            clearCart();
-            router.push('/checkout/success');
+            setPaymentPopup({
+                message: lastMessage || (t('checkout.paymentRequestSent', { item: 'Order' }) as string) || 'Payment request sent. Please check your phone.',
+                transactionIds: txIds,
+            });
+            setPaymentPopupOpen(true);
 
         } catch (error: any) {
             console.error(error);
@@ -101,6 +111,40 @@ export default function CheckoutPage() {
 
     return (
         <MainLayout>
+            <Modal
+                isOpen={paymentPopupOpen}
+                onClose={() => setPaymentPopupOpen(false)}
+                title={t('checkout.paymentMethodSelection') || 'Payment Request Sent'}
+                className="max-w-lg"
+            >
+                <div className="p-8 space-y-6">
+                    <p className="text-sm font-bold leading-relaxed">{paymentPopup?.message}</p>
+                    {!!paymentPopup?.transactionIds?.length && (
+                        <div className="rounded-2xl border border-border bg-background p-4">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-2">Transaction IDs</p>
+                            <div className="space-y-2">
+                                {paymentPopup.transactionIds.slice(0, 5).map((tx) => (
+                                    <p key={tx} className="text-xs font-bold break-all">{tx}</p>
+                                ))}
+                                {paymentPopup.transactionIds.length > 5 && (
+                                    <p className="text-[10px] font-bold text-text-secondary">+{paymentPopup.transactionIds.length - 5} more</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    <Button
+                        className="w-full h-14 rounded-2xl font-black uppercase italic"
+                        onClick={() => {
+                            setPaymentPopupOpen(false);
+                            clearCart();
+                            router.push('/checkout/success');
+                        }}
+                    >
+                        Continue
+                    </Button>
+                </div>
+            </Modal>
+
             <div className="max-w-6xl mx-auto pb-20">
                 <header className="mb-12">
                     <button

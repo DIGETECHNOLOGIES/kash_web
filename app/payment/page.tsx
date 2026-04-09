@@ -10,6 +10,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
+import { Modal } from '@/components/common/Modal';
 import {
     CreditCard,
     Smartphone,
@@ -37,6 +38,8 @@ export default function PaymentPage() {
     const [paymentMethod, setPaymentMethod] = useState<'MTN' | 'ORANGE' | null>(null);
     const [phone, setPhone] = useState(user?.number || '');
     const [loading, setLoading] = useState(false);
+    const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+    const [paymentPopup, setPaymentPopup] = useState<{ message: string; transactionId?: string } | null>(null);
 
     const { data: order, isLoading: isLoadingOrder } = useQuery({
         queryKey: ['order', orderId],
@@ -63,15 +66,15 @@ export default function PaymentPage() {
         try {
             const amount = Number(order?.payableTotal || order?.total || 0);
 
-            await paymentApi.initiatePayment({
+            const res = await paymentApi.initiatePayment({
                 amount: String(amount),
                 provider: paymentMethod,
                 phone_number: phone,
                 order_ids: [Number(orderId)]
             });
 
-            toast.success(t('checkout.paymentRequestSent', { item: order?.product_name || 'Order' }));
-            router.push('/checkout/success');
+            setPaymentPopup({ message: res.message, transactionId: res.transaction_id });
+            setPaymentPopupOpen(true);
         } catch (error: any) {
             console.error(error);
             toast.error(error.message || t('checkout.errorProcessOrder'));
@@ -107,6 +110,38 @@ export default function PaymentPage() {
 
     return (
         <MainLayout>
+            <Modal
+                isOpen={paymentPopupOpen}
+                onClose={() => setPaymentPopupOpen(false)}
+                title={t('checkout.paymentMethodSelection') || 'Payment Request Sent'}
+                className="max-w-lg"
+            >
+                <div className="p-8 space-y-6">
+                    <div className="flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-success/10 flex items-center justify-center text-success shrink-0">
+                            <CheckCircle2 size={28} />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-sm font-bold leading-relaxed">{paymentPopup?.message || 'Payment request sent. Please check your phone.'}</p>
+                            {paymentPopup?.transactionId && (
+                                <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-text-secondary break-all">
+                                    Transaction: {paymentPopup.transactionId}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <Button
+                        className="w-full h-14 rounded-2xl font-black uppercase italic"
+                        onClick={() => {
+                            setPaymentPopupOpen(false);
+                            router.push('/checkout/success');
+                        }}
+                    >
+                        Continue
+                    </Button>
+                </div>
+            </Modal>
+
             <div className="max-w-6xl mx-auto pb-20">
                 <header className="mb-12">
                     <button

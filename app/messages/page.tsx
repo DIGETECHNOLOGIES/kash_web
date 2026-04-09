@@ -488,7 +488,7 @@ export default function MessagesPage() {
                     <div className="wa-sidebar-header">
                         <div className="flex items-center gap-4 w-full">
                             <h1 className="text-xl font-black italic tracking-tighter uppercase flex-1 text-white">Messages</h1>
-                            <div className="flex items-center gap-4">
+                            {/* <div className="flex items-center gap-4">
                                 <Search size={22} className="text-white cursor-pointer" />
                                 <ShoppingCart size={22} className="text-white cursor-pointer" />
                                 <div className="relative">
@@ -496,13 +496,13 @@ export default function MessagesPage() {
                                     <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white border-2 border-primary font-bold">3</span>
                                 </div>
                                 <MoreVertical size={22} className="text-white cursor-pointer" />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
                     {/* Search Bar */}
-                    <div className="px-4 py-2 bg-white">
-                        <div className="flex items-center gap-2 bg-[#f0f2f5] px-4 py-2 rounded-xl">
+                    <div className="px-4 py-2 bg-surface">
+                        <div className="flex items-center gap-2 bg-background px-4 py-2 rounded-xl">
                             <Search size={16} className="text-text-secondary" />
                             <input
                                 value={search}
@@ -514,7 +514,7 @@ export default function MessagesPage() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex border-b border-border bg-white pt-2">
+                    <div className="flex border-b border-border bg-surface pt-2">
                         {[
                             { id: 'all', label: t('common.all') },
                             { id: 'BUYER', label: t('messages.asUser') },
@@ -540,7 +540,7 @@ export default function MessagesPage() {
                     </div>
 
                     {/* List */}
-                    <div className="wa-conv-list bg-[#f8f9fa]">
+                    <div className="wa-conv-list bg-background">
                         {isLoadingList ? (
                             Array(5).fill(0).map((_, i) => (
                                 <div key={i} className="wa-conv-skeleton" />
@@ -641,7 +641,7 @@ export default function MessagesPage() {
                                     </button>
 
                                     {showMenu && (
-                                        <div className="absolute top-12 right-0 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl p-1.5 w-64 z-[100] border border-border/40 animate-in fade-in zoom-in duration-200">
+                                                <div className="absolute top-12 right-0 bg-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl p-1.5 w-64 z-[100] border border-border/40 animate-in fade-in zoom-in duration-200">
                                             {user?.has_shop && (
                                                 <button
                                                     onClick={() => {
@@ -649,7 +649,7 @@ export default function MessagesPage() {
                                                         setShowInvoiceModal(true);
                                                         fetchShopProducts();
                                                     }}
-                                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#f0f2f5] text-[#111b21] transition-all text-left"
+                                                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 text-text transition-all text-left"
                                                 >
                                                     <FilePlus size={20} className="text-text-secondary" />
                                                     <span className="text-sm font-medium">Create an Invoice</span>
@@ -657,7 +657,7 @@ export default function MessagesPage() {
                                             )}
                                             <button
                                                 onClick={() => setShowMenu(false)}
-                                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#f0f2f5] text-red-500 transition-all text-left"
+                                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 text-red-500 transition-all text-left"
                                             >
                                                 <X size={20} />
                                                 <span className="text-sm font-medium">{t('common.close') || 'Close Menu'}</span>
@@ -668,7 +668,7 @@ export default function MessagesPage() {
                             </div>
 
                             {/* Messages Area */}
-                            <div className="wa-messages bg-[#f8f9fa]">
+                                    <div className="wa-messages bg-background">
                                 <div className="wa-messages-bg" />
 
                                 {isLoadingChat ? (
@@ -735,7 +735,7 @@ export default function MessagesPage() {
                                                             )}
 
                                                             {msg.content && (
-                                                                <div className={cn('wa-bubble-text', isOwn ? 'text-white' : 'text-[#111b21]')}>
+                                                                <div className={cn('wa-bubble-text', isOwn ? 'text-white' : 'text-text')}>
                                                                     {renderTaggedMessageContent(msg.content, isOwn)}
                                                                 </div>
                                                             )}
@@ -762,7 +762,7 @@ export default function MessagesPage() {
                             <div className="wa-input-area relative">
                                 {pendingTag && (
                                     <div className="px-4 pt-3">
-                                        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3 shadow-sm">
+                                        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                                     <ShoppingCart size={18} />
@@ -781,7 +781,7 @@ export default function MessagesPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setPendingTag(null)}
-                                                className="h-9 w-9 rounded-full bg-[#f0f2f5] flex items-center justify-center text-text-secondary hover:text-error hover:bg-error/10 transition-colors"
+                                                className="h-9 w-9 rounded-full bg-background flex items-center justify-center text-text-secondary hover:text-error hover:bg-error/10 transition-colors"
                                                 aria-label="Remove tag"
                                             >
                                                 <X size={18} />
@@ -810,13 +810,13 @@ export default function MessagesPage() {
                                     <div className="relative shrink-0">
                                         <button
                                             type="button"
-                                            className="h-11 w-11 rounded-full bg-[#f0f2f5] flex items-center justify-center text-primary group hover:bg-primary hover:text-white transition-all shadow-sm"
+                                            className="h-11 w-11 rounded-full bg-background flex items-center justify-center text-primary group hover:bg-primary hover:text-white transition-all shadow-sm"
                                             onClick={() => setShowMenu(!showMenu)}
                                         >
                                             <Plus size={24} className={cn("transition-transform duration-300", showMenu && "rotate-45")} />
                                         </button>
                                         {showMenu && (
-                                            <div className="absolute bottom-14 left-0 bg-white shadow-2xl rounded-3xl p-3 w-64 z-[110] border border-border animate-in slide-in-from-bottom-2 duration-300">
+                                            <div className="absolute bottom-14 left-0 bg-surface shadow-2xl rounded-3xl p-3 w-64 z-[110] border border-border animate-in slide-in-from-bottom-2 duration-300">
                                                 <button
                                                     onClick={() => {
                                                         setShowMenu(false);
@@ -849,7 +849,7 @@ export default function MessagesPage() {
                                         )}
                                     </div>
 
-                                    <div className="flex-1 flex items-center bg-white rounded-full px-4 h-11 border border-border/40">
+                                    <div className="flex-1 flex items-center bg-surface rounded-full px-4 h-11 border border-border/40">
                                         <input
                                             value={inputText}
                                             onChange={e => setInputText(e.target.value)}
@@ -877,7 +877,7 @@ export default function MessagesPage() {
                                             )}
                                         </button>
                                     ) : (
-                                        <button type="button" className="shrink-0 h-11 w-11 rounded-full bg-[#f0f2f5] flex items-center justify-center text-primary group hover:bg-primary/10 transition-colors">
+                                        <button type="button" className="shrink-0 h-11 w-11 rounded-full bg-background flex items-center justify-center text-primary group hover:bg-primary/10 transition-colors">
                                             <Mic size={22} />
                                         </button>
                                     )}
@@ -971,10 +971,20 @@ export default function MessagesPage() {
 
             <style jsx global>{`
         .wa-root {
+                    --wa-bg: var(--color-background);
+                    --wa-surface: var(--color-surface);
+                    --wa-border: var(--color-border);
+                    --wa-text: var(--color-text);
+                    --wa-muted: var(--color-text-secondary);
+                    --wa-primary: var(--color-primary);
+                    --wa-primary-dark: var(--color-primary-dark);
+                    --wa-hover: rgba(16,185,129,0.06);
+                    --wa-active: rgba(16,185,129,0.10);
+
           display: flex;
           height: calc(100vh - 4rem);
           overflow: hidden;
-          background: #f0f2f5;
+                    background: var(--wa-bg);
           border-radius: 0;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           padding-bottom: env(safe-area-inset-bottom);
@@ -985,8 +995,8 @@ export default function MessagesPage() {
           min-width: 280px;
           display: flex;
           flex-direction: column;
-          background: #fff;
-          border-right: 1px solid #e9edef;
+                    background: var(--wa-surface);
+                    border-right: 1px solid var(--wa-border);
           overflow: hidden;
         }
 
@@ -995,7 +1005,7 @@ export default function MessagesPage() {
           align-items: center;
           gap: 1rem;
           padding: 0.85rem 1rem;
-          background: #00d084;
+                    background: var(--wa-primary);
           border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
@@ -1003,7 +1013,7 @@ export default function MessagesPage() {
 
         .wa-conv-skeleton {
           height: 72px;
-          background: linear-gradient(90deg, #f0f2f5 25%, #e5e8eb 50%, #f0f2f5 75%);
+                    background: linear-gradient(90deg, var(--wa-bg) 25%, var(--wa-surface) 50%, var(--wa-bg) 75%);
           background-size: 200% 100%;
           animation: shimmer 1.2s infinite;
           margin: 0;
@@ -1015,25 +1025,25 @@ export default function MessagesPage() {
           display: flex; flex-direction: column;
           align-items: center; justify-content: center;
           gap: 0.75rem; padding: 4rem 2rem;
-          color: #8696a0; font-size: 0.875rem;
+                    color: var(--wa-muted); font-size: 0.875rem;
         }
 
         .wa-conv-item {
           width: 100%; display: flex; align-items: center;
           gap: 0.75rem; padding: 0.75rem 1rem;
           background: none; border: none;
-          border-bottom: 1px solid #f0f2f5;
+                    border-bottom: 1px solid var(--wa-border);
           cursor: pointer; transition: background 0.1s; text-align: left;
         }
-        .wa-conv-item:hover { background: #f5f6f6; }
-        .wa-conv-item--active { background: #f0f2f5; }
+                .wa-conv-item:hover { background: var(--wa-hover); }
+                .wa-conv-item--active { background: var(--wa-active); }
 
         .wa-conv-avatar { position: relative; flex-shrink: 0; }
         .wa-conv-unread-dot {
           position: absolute; top: 0; right: 0;
           width: 10px; height: 10px;
           background: #25D366; border-radius: 50%;
-          border: 2px solid white;
+                    border: 2px solid var(--wa-surface);
         }
 
         .wa-conv-info { flex: 1; min-width: 0; }
@@ -1045,11 +1055,11 @@ export default function MessagesPage() {
 
         .wa-conv-name {
           font-weight: 600; font-size: 0.9375rem;
-          color: #111b21; overflow: hidden;
+                    color: var(--wa-text); overflow: hidden;
           text-overflow: ellipsis; white-space: nowrap;
         }
 
-        .wa-conv-time { font-size: 0.72rem; color: #8696a0; flex-shrink: 0; }
+                .wa-conv-time { font-size: 0.72rem; color: var(--wa-muted); flex-shrink: 0; }
 
         .wa-conv-bottom {
           display: flex; justify-content: space-between;
@@ -1057,7 +1067,7 @@ export default function MessagesPage() {
         }
 
         .wa-conv-preview {
-          font-size: 0.825rem; color: #667781;
+                    font-size: 0.825rem; color: var(--wa-muted);
           white-space: nowrap; overflow: hidden;
           text-overflow: ellipsis; flex: 1;
         }
@@ -1072,38 +1082,38 @@ export default function MessagesPage() {
 
         .wa-chat {
           flex: 1; display: flex; flex-direction: column;
-          background: #f8f9fa; overflow: hidden; position: relative;
+                    background: var(--wa-bg); overflow: hidden; position: relative;
         }
 
-        .wa-chat--empty-state { background: #f0f2f5; }
+                .wa-chat--empty-state { background: var(--wa-bg); }
 
         .wa-welcome {
           flex: 1; display: flex; flex-direction: column;
           align-items: center; justify-content: center;
-          gap: 1rem; color: #667781;
+                    gap: 1rem; color: var(--wa-muted);
         }
 
         .wa-welcome-icon {
           width: 88px; height: 88px; border-radius: 50%;
-          background: #d9fdd3;
+                    background: rgba(16,185,129,0.12);
           display: flex; align-items: center; justify-content: center;
-          color: #25D366;
+                    color: var(--wa-primary);
         }
 
         .wa-welcome-title {
           font-size: 1.375rem; font-weight: 700;
-          color: #111b21; margin: 0;
+                    color: var(--wa-text); margin: 0;
         }
 
         .wa-welcome-sub {
-          font-size: 0.875rem; color: #667781;
+                    font-size: 0.875rem; color: var(--wa-muted);
           margin: 0; max-width: 280px; text-align: center;
         }
 
         .wa-chat-header {
           display: flex; align-items: center;
           justify-content: space-between;
-          background: #00d084; padding: 0.5rem 1rem;
+                    background: var(--wa-primary); padding: 0.5rem 1rem;
           border-bottom: 1px solid rgba(0,0,0,0.05); gap: 0.75rem; z-index: 10;
         }
 
@@ -1137,16 +1147,18 @@ export default function MessagesPage() {
         .wa-messages-bg {
           position: fixed; inset: 0; pointer-events: none;
           background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d9d9d9' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-          z-index: 0; opacity: 0.5;
+                    z-index: 0; opacity: 0.12;
         }
 
+                .dark .wa-messages-bg { opacity: 0.05; }
+
         .wa-loading-msgs, .wa-no-msgs { position: relative; z-index: 1; padding: 1rem 0; }
-        .wa-no-msgs { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 4rem; color: #667781; font-size: 0.875rem; }
-        .wa-no-msgs-icon { width: 64px; height: 64px; border-radius: 50%; background: #d9fdd3; display: flex; align-items: center; justify-content: center; color: #25D366; }
+        .wa-no-msgs { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 4rem; color: var(--wa-muted); font-size: 0.875rem; }
+        .wa-no-msgs-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.12); display: flex; align-items: center; justify-content: center; color: var(--wa-primary); }
 
         .wa-msg-skeleton {
           height: 48px; border-radius: 18px;
-          background: linear-gradient(90deg, #f0f2f5 25%, #e5e8eb 50%, #f0f2f5 75%);
+                    background: linear-gradient(90deg, var(--wa-bg) 25%, var(--wa-surface) 50%, var(--wa-bg) 75%);
           background-size: 200% 100%;
           animation: shimmer 1.2s infinite;
           margin-bottom: 0.5rem;
@@ -1159,7 +1171,7 @@ export default function MessagesPage() {
           margin: 0.75rem 0; position: relative; z-index: 1;
         }
         .wa-date-sep span {
-          background: rgba(225,245,254,0.92); color: #54656f;
+                    background: rgba(16,185,129,0.10); color: var(--wa-text);
           font-size: 0.7rem; font-weight: 600;
           padding: 0.25rem 0.85rem; border-radius: 999px;
           box-shadow: 0 1px 2px rgba(0,0,0,0.1);
@@ -1178,14 +1190,14 @@ export default function MessagesPage() {
           position: relative; box-shadow: 0 1px 0.5px rgba(11,20,26,0.13);
           word-break: break-word;
         }
-        .wa-bubble--in { background: #fff; border-top-left-radius: 2px; }
-        .wa-bubble--out { background: #00d084; border-top-right-radius: 2px; box-shadow: 0 4px 15px rgba(0,208,132,0.25); }
+        .wa-bubble--in { background: var(--wa-surface); border-top-left-radius: 2px; }
+        .wa-bubble--out { background: var(--wa-primary); border-top-right-radius: 2px; box-shadow: 0 4px 15px rgba(16,185,129,0.25); }
 
         .wa-bubble-tail {
           position: absolute; top: 0; width: 0; height: 0;
         }
-        .wa-bubble-tail--in { left: -8px; border-right: 8px solid #fff; border-top: 8px solid transparent; }
-        .wa-bubble-tail--out { right: -8px; border-left: 8px solid #00d084; border-top: 8px solid transparent; }
+        .wa-bubble-tail--in { left: -8px; border-right: 8px solid var(--wa-surface); border-top: 8px solid transparent; }
+        .wa-bubble-tail--out { right: -8px; border-left: 8px solid var(--wa-primary); border-top: 8px solid transparent; }
 
         .wa-bubble-img {
           max-width: 260px; width: 100%; border-radius: 8px;
@@ -1194,7 +1206,7 @@ export default function MessagesPage() {
 
         .wa-bubble-text {
           margin: 0 0 0.2rem; font-size: 0.875rem;
-          color: #111b21; line-height: 1.5; white-space: pre-wrap;
+                    color: var(--wa-text); line-height: 1.5; white-space: pre-wrap;
         }
 
         .wa-reply-preview {
@@ -1203,24 +1215,25 @@ export default function MessagesPage() {
           flex-direction: column; gap: 0.1rem;
           border-left: 4px solid; overflow: hidden;
         }
-        .wa-reply-preview--in { background: rgba(0,0,0,0.05); border-color: #25D366; }
-        .wa-reply-preview--out { background: rgba(0,0,0,0.05); border-color: #128C7E; }
-        .wa-reply-name { font-size: 0.72rem; font-weight: 700; color: #25D366; }
-        .wa-reply-text { font-size: 0.78rem; color: #667781; }
+        .wa-reply-preview--in { background: rgba(0,0,0,0.05); border-color: var(--wa-primary); }
+        .wa-reply-preview--out { background: rgba(0,0,0,0.05); border-color: var(--wa-primary-dark); }
+        .dark .wa-reply-preview--in, .dark .wa-reply-preview--out { background: rgba(255,255,255,0.06); }
+        .wa-reply-name { font-size: 0.72rem; font-weight: 700; color: var(--wa-primary); }
+        .wa-reply-text { font-size: 0.78rem; color: var(--wa-muted); }
 
         .wa-bubble-footer {
           display: flex; align-items: center; justify-content: flex-end;
           gap: 0.2rem; margin-top: 0.15rem;
         }
-        .wa-bubble-time { font-size: 0.67rem; color: #667781; }
+        .wa-bubble-time { font-size: 0.67rem; color: var(--wa-muted); }
         .wa-ticks { flex-shrink: 0; }
         .wa-ticks--sent { color: #8696a0; }
         .wa-ticks--read { color: #53bdeb; }
 
         /* ─── Image Preview Bar ─── */
         .wa-img-preview {
-          background: #f0f2f5; padding: 0.5rem 1rem;
-          border-top: 1px solid #e9edef;
+                    background: var(--wa-bg); padding: 0.5rem 1rem;
+                    border-top: 1px solid var(--wa-border);
           display: flex; align-items: center; gap: 0.75rem;
           position: relative; z-index: 10;
         }
@@ -1235,8 +1248,8 @@ export default function MessagesPage() {
 
         /* ─── Input ─── */
         .wa-input-area {
-          background: #f0f2f5; padding: 0.6rem 1rem;
-          border-top: 1px solid #e9edef; z-index: 10;
+                    background: var(--wa-bg); padding: 0.6rem 1rem;
+                    border-top: 1px solid var(--wa-border); z-index: 10;
         }
 
         .wa-input-row {
@@ -1244,33 +1257,33 @@ export default function MessagesPage() {
         }
 
         .wa-tool-btn {
-          background: none; border: none; color: #54656f;
+                    background: none; border: none; color: var(--wa-muted);
           cursor: pointer; width: 40px; height: 40px;
           display: flex; align-items: center; justify-content: center;
           border-radius: 50%; flex-shrink: 0; margin-bottom: 2px;
         }
-        .wa-tool-btn:hover { background: rgba(0,0,0,0.07); }
+                .wa-tool-btn:hover { background: var(--wa-hover); }
 
         .wa-input-wrap { flex: 1; }
         .wa-textarea {
-          width: 100%; border: none; background: #fff;
+                    width: 100%; border: none; background: var(--wa-surface);
           border-radius: 20px; padding: 0.6rem 1rem;
           font-size: 0.9375rem; line-height: 1.5; outline: none;
           resize: none; max-height: 180px; overflow-y: auto;
-          font-family: inherit; color: #111b21;
+                    font-family: inherit; color: var(--wa-text);
           scrollbar-width: none;
         }
-        .wa-textarea::placeholder { color: #8696a0; }
+                .wa-textarea::placeholder { color: var(--wa-muted); }
         .wa-textarea::-webkit-scrollbar { display: none; }
 
         .wa-send-btn {
-          background: #25D366; border: none; cursor: pointer; color: white;
+                    background: var(--wa-primary); border: none; cursor: pointer; color: white;
           display: flex; align-items: center; justify-content: center;
           border-radius: 50%; width: 44px; height: 44px;
           transition: background 0.15s, transform 0.1s;
-          box-shadow: 0 2px 6px rgba(37,211,102,0.3); flex-shrink: 0;
+                    box-shadow: 0 2px 6px rgba(16,185,129,0.25); flex-shrink: 0;
         }
-        .wa-send-btn:hover { background: #128C7E; transform: scale(1.05); }
+                .wa-send-btn:hover { background: var(--wa-primary-dark); transform: scale(1.05); }
         .wa-send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .wa-spinner {
           width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4);

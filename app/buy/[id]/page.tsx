@@ -5,18 +5,26 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { productApi } from '@/services/api/productApi';
+import { orderApi } from '@/services/api/orderApi';
+import { paymentApi } from '@/services/api/paymentApi';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
-import { Smartphone, CreditCard, Truck, ShieldCheck, MapPin, ChevronLeft } from 'lucide-react';
-import { useCartStore } from '@/store/cartStore';
+import { Modal } from '@/components/common/Modal';
+import { Smartphone, ShieldCheck, MapPin, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/store/authStore';
 
 export default function BuyPage() {
     const { id: slug } = useParams();
     const router = useRouter();
     const { t } = useTranslation();
-    const [paymentMethod, setPaymentMethod] = useState<'momo' | 'om' | 'card'>('momo');
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const { user } = useAuthStore();
+    const [paymentMethod, setPaymentMethod] = useState<'momo' | 'om'>('momo');
+    const [phoneNumber, setPhoneNumber] = useState(user?.number || '');
+    const [loading, setLoading] = useState(false);
+    const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
+    const [paymentPopup, setPaymentPopup] = useState<{ message: string; transactionId?: string } | null>(null);
 
     const { data: product, isLoading } = useQuery({
         queryKey: ['product', slug],
@@ -24,9 +32,41 @@ export default function BuyPage() {
     });
 
     const handlePurchase = async () => {
-        // Logic to initiate payment and create order
-        alert('Payment initiated. Please check your phone for the push notification.');
-        router.push('/orders');
+        if (!product?.id) {
+            toast.error('Product not loaded');
+            return;
+        }
+
+        if (!phoneNumber.trim()) {
+            toast.error(t('checkout.provideDeliveryDetails') || 'Please provide your phone number');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const createdOrder = await orderApi.createOrder({
+                product: Number(product.id),
+                quantity: 1,
+            });
+
+            const provider = paymentMethod === 'momo' ? 'MTN' : 'ORANGE';
+            const amount = Number(createdOrder?.totalAmount || createdOrder?.total || (product as any).current_price || (product as any).price || 0);
+
+            const res = await paymentApi.initiatePayment({
+                amount: String(amount),
+                provider,
+                phone_number: phoneNumber.trim(),
+                order_ids: [Number(createdOrder.id)],
+            });
+
+            setPaymentPopup({ message: res.message, transactionId: res.transaction_id });
+            setPaymentPopupOpen(true);
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error?.message || t('checkout.errorProcessOrder') || 'Payment failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (isLoading) return <MainLayout><div>Loading...</div></MainLayout>;
@@ -34,6 +74,38 @@ export default function BuyPage() {
 
     return (
         <MainLayout>
+            <Modal
+                isOpen={paymentPopupOpen}
+                onClose={() => setPaymentPopupOpen(false)}
+                title={t('checkout.paymentMethodSelection') || 'Payment Request Sent'}
+                className="max-w-lg"
+            >
+                <div className="p-8 space-y-6">
+                    <div className="flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-success/10 flex items-center justify-center text-success shrink-0">
+                            <CheckCircle2 size={28} />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-sm font-bold leading-relaxed">{paymentPopup?.message || 'Payment request sent. Please check your phone.'}</p>
+                            {paymentPopup?.transactionId && (
+                                <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-text-secondary break-all">
+                                    Transaction: {paymentPopup.transactionId}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <Button
+                        className="w-full h-14 rounded-2xl font-black uppercase italic"
+                        onClick={() => {
+                            setPaymentPopupOpen(false);
+                            router.push('/checkout/success');
+                        }}
+                    >
+                        Continue
+                    </Button>
+                </div>
+            </Modal>
+
             <button
                 onClick={() => router.back()}
                 className="mb-6 flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-primary transition-colors"
@@ -72,7 +144,7 @@ export default function BuyPage() {
                         {/* Payment Method */}
                         <section>
                             <h2 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-4 ml-1">Payment Method</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <button
                                     onClick={() => setPaymentMethod('momo')}
                                     className={`p-6 rounded-3xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'momo' ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-border bg-surface opacity-60'}`}
@@ -86,13 +158,6 @@ export default function BuyPage() {
                                 >
                                     <Smartphone size={32} className={paymentMethod === 'om' ? 'text-orange-500' : ''} />
                                     <span className="font-black italic text-xs uppercase">Orange Money</span>
-                                </button>
-                                <button
-                                    onClick={() => setPaymentMethod('card')}
-                                    className={`p-6 rounded-3xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'card' ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-border bg-surface opacity-60'}`}
-                                >
-                                    <CreditCard size={32} className={paymentMethod === 'card' ? 'text-primary' : ''} />
-                                    <span className="font-black italic text-xs uppercase">Visa/MasterCard</span>
                                 </button>
                             </div>
 
@@ -145,6 +210,7 @@ export default function BuyPage() {
                                 <Button
                                     onClick={handlePurchase}
                                     size="lg"
+                                    isLoading={loading}
                                     className="w-full h-16 rounded-2xl bg-primary text-white font-black italic uppercase shadow-xl shadow-primary/20 hover:scale-105 transition-transform"
                                 >
                                     Pay securely
