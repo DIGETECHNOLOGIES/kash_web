@@ -22,6 +22,7 @@ export default function BuyPage() {
     const { user } = useAuthStore();
     const [paymentMethod, setPaymentMethod] = useState<'momo' | 'om'>('momo');
     const [phoneNumber, setPhoneNumber] = useState(user?.number || '');
+    const [deliveryLocation, setDeliveryLocation] = useState(user?.location || '');
     const [loading, setLoading] = useState(false);
     const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
     const [paymentPopup, setPaymentPopup] = useState<{ message: string; transactionId?: string } | null>(null);
@@ -42,15 +43,28 @@ export default function BuyPage() {
             return;
         }
 
+        if (!deliveryLocation.trim()) {
+            toast.error(t('checkout.provideDeliveryDetails') || 'Please provide your delivery location');
+            return;
+        }
+
         setLoading(true);
         try {
             const createdOrder = await orderApi.createOrder({
                 product: Number(product.id),
                 quantity: 1,
+                delivery_location: deliveryLocation.trim(),
             });
 
             const provider = paymentMethod === 'momo' ? 'MTN' : 'ORANGE';
-            const amount = Number(createdOrder?.totalAmount || createdOrder?.total || (product as any).current_price || (product as any).price || 0);
+            const amount = Number(
+                createdOrder?.payableTotal ??
+                (createdOrder as any)?.payable_total ??
+                createdOrder?.total ??
+                (product as any).current_price ??
+                (product as any).price ??
+                0
+            );
 
             const res = await paymentApi.initiatePayment({
                 amount: String(amount),
@@ -134,6 +148,8 @@ export default function BuyPage() {
                                         <input
                                             type="text"
                                             placeholder="Enter your precise delivery address..."
+                                            value={deliveryLocation}
+                                            onChange={(e) => setDeliveryLocation(e.target.value)}
                                             className="w-full h-12 rounded-xl border border-border bg-background px-4 text-sm font-bold focus:border-primary focus:outline-none"
                                         />
                                     </div>

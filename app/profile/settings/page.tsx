@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
+import { usersApi } from '@/services/api/usersApi';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -32,6 +33,18 @@ export default function SettingsPage() {
 
     const changeLanguage = (lng: string) => {
         i18n.changeLanguage(lng);
+    };
+
+    const handleDeleteAccount = async () => {
+        if (confirm(t('settings.deleteAccountConfirm', 'Are you sure you want to delete your account? This action is permanent and cannot be undone.'))) {
+            try {
+                await usersApi.deleteAccount();
+                await useAuthStore.getState().logout();
+                router.push('/');
+            } catch (error: any) {
+                alert(t('common.errorDeletingAccount', 'Failed to delete account. Please try again or contact support.'));
+            }
+        }
     };
 
     interface MenuItem {
@@ -129,7 +142,11 @@ export default function SettingsPage() {
                     <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-8 italic">
                         KASH Marketplace &copy; 2024 • {t('settings.enterpriseLayer')}
                     </p>
-                    <Button variant="outline" className="rounded-2xl border-error/20 text-error hover:bg-error/5 h-12 px-8 uppercase font-bold italic">
+                    <Button
+                        variant="outline"
+                        className="rounded-2xl border-error/20 text-error hover:bg-error/5 h-12 px-8 uppercase font-bold italic"
+                        onClick={handleDeleteAccount}
+                    >
                         {t('settings.deleteAccount')}
                     </Button>
                 </div>

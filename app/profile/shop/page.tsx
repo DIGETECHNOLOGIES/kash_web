@@ -154,6 +154,11 @@ export default function ShopManagePage() {
     };
 
     const onSubmit = (data: any) => {
+        if (!files.idFront || !files.idBack || !files.owner) {
+            toast.error(t('shop.missingImages') || 'Please upload all required verification documents (ID front/back and owner photo).');
+            return;
+        }
+
         const formData = {
             ...data,
             phone_number: data.ownerPhone,
@@ -161,7 +166,7 @@ export default function ShopManagePage() {
             id_card_front: files.idFront,
             id_card_back: files.idBack,
             owner_image: files.owner,
-            shop_image: files.shop,
+            shop_images: files.shop,
             address: data.location,
             email: user?.email || '',
         };
@@ -313,7 +318,7 @@ export default function ShopManagePage() {
                         <Button onClick={handleShareShop} variant="outline" className="rounded-2xl h-12 border-border/60 font-black uppercase italic text-xs bg-primary/10 text-primary border-primary/20">
                             <Share2 size={18} className="mr-2" /> Share Shop
                         </Button>
-                        <Button variant="outline" className="rounded-2xl h-12 border-border/60 font-black uppercase italic text-xs">
+                        <Button onClick={() => router.push('/profile/shop/settings')} variant="outline" className="rounded-2xl h-12 border-border/60 font-black uppercase italic text-xs">
                             <Settings size={18} className="mr-2" /> Shop Settings
                         </Button>
                         <Button onClick={() => router.push('/profile/shop/add-product')} className="rounded-2xl h-12 font-black uppercase italic text-xs shadow-xl shadow-primary/20">

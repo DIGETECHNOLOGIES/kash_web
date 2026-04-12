@@ -52,6 +52,13 @@ class APIClient {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
 
+                // Fix for multipart/form-data: let axios set the boundary
+                if (config.data instanceof FormData) {
+                    if (config.headers) {
+                        delete config.headers['Content-Type'];
+                    }
+                }
+
                 // Log request in development
                 if (IS_DEV) {
                     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);

@@ -18,7 +18,7 @@ const mapShop = (s: any): Shop => ({
     ownerName: s.owner_name || 'Merchant',
     ownerPhone: s.phone_number || '',
     whatsappNumber: s.phone_number || '', // Fallback
-    location: s.location || '',
+    location: s.address || s.location || '',
     region: s.region || '',
     image: s.shop_images || s.image,
     idFrontImage: s.id_card_front,
@@ -34,7 +34,10 @@ const mapShop = (s: any): Shop => ({
     totalProducts: s.total_products || 0,
     totalOrders: s.total_orders || 0,
     revenue: parseFloat(s.revenue) || 0,
-    additional_images: s.images?.map((img: any) => img.image) || [],
+    additional_images: s.images?.map((img: any) => ({
+        id: img.id,
+        image: img.image
+    })) || [],
 });
 
 interface CreateShopData {
@@ -125,10 +128,7 @@ export const shopApi = {
 
             const response = await apiClient.post<any>(
                 SHOP_ENDPOINTS.CREATE_SHOP,
-                formData,
-                {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                }
+                formData
             );
             return mapShop(response.data);
         } catch (error: any) {
@@ -174,10 +174,7 @@ export const shopApi = {
 
             const response = await apiClient.patch<any>(
                 SHOP_ENDPOINTS.UPDATE_SHOP(shopId),
-                formData,
-                {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                }
+                formData
             );
             return mapShop(response.data);
         } catch (error: any) {
@@ -217,6 +214,18 @@ export const shopApi = {
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Shop Analytics');
+        }
+    },
+
+    /**
+     * Delete an additional shop image
+     */
+    deleteShopImage: async (shopId: string | number, imageId: number): Promise<void> => {
+        try {
+            const baseUrl = SHOP_ENDPOINTS.GET_SHOP_DETAIL(shopId);
+            await apiClient.post(`${baseUrl}delete-image/`, { image_id: imageId });
+        } catch (error: any) {
+            throw handleAPIError(error, 'Delete Shop Image');
         }
     },
 };

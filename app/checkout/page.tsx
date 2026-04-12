@@ -43,7 +43,7 @@ export default function CheckoutPage() {
     const [phone, setPhone] = useState(user?.number || '');
     const [location, setLocation] = useState(user?.location || '');
     const [paymentPopupOpen, setPaymentPopupOpen] = useState(false);
-    const [paymentPopup, setPaymentPopup] = useState<{ message: string; transactionIds: string[] } | null>(null);
+    const [paymentPopup, setPaymentPopup] = useState<{ message: string; transactionId?: string } | null>(null);
 
     const subtotal = getTotal();
     const total = subtotal;
@@ -65,32 +65,32 @@ export default function CheckoutPage() {
             for (const item of items) {
                 const order = await orderApi.createOrder({
                     product: Number(item.product.id),
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    delivery_location: location,
                 });
                 createdOrders.push({ ...order, itemPrice: item.product.price * item.quantity });
             }
 
-            // 2. Initiate Payment
-            const txIds: string[] = [];
-            let lastMessage = '';
-            for (const order of createdOrders) {
-                const orderSubtotal = Number(order.totalAmount || order.total || 0);
-                const paymentAmount = orderSubtotal;
+            // 2. Initiate payment ONCE for all orders (same flow as mobile)
+            const orderIds = createdOrders
+                .map((o: any) => Number(o.id))
+                .filter((id: number) => Number.isFinite(id));
 
-                const res = await paymentApi.initiatePayment({
-                    amount: String(paymentAmount),
-                    provider: paymentMethod,
-                    phone_number: phone,
-                    order_ids: [Number(order.id)]
-                });
+            const payableAmount = createdOrders.reduce((sum: number, o: any) => {
+                const v = Number(o.payableTotal ?? (o as any).payable_total ?? o.total ?? 0);
+                return sum + (Number.isFinite(v) ? v : 0);
+            }, 0);
 
-                if (res?.transaction_id) txIds.push(res.transaction_id);
-                if (res?.message) lastMessage = res.message;
-            }
+            const res = await paymentApi.initiatePayment({
+                amount: String(payableAmount),
+                provider: paymentMethod,
+                phone_number: phone,
+                order_ids: orderIds,
+            });
 
             setPaymentPopup({
-                message: lastMessage || (t('checkout.paymentRequestSent', { item: 'Order' }) as string) || 'Payment request sent. Please check your phone.',
-                transactionIds: txIds,
+                message: res?.message || (t('checkout.paymentRequestSent', { item: 'Order' }) as string) || 'Payment request sent. Please check your phone.',
+                transactionId: res?.transaction_id,
             });
             setPaymentPopupOpen(true);
 
@@ -119,17 +119,10 @@ export default function CheckoutPage() {
             >
                 <div className="p-8 space-y-6">
                     <p className="text-sm font-bold leading-relaxed">{paymentPopup?.message}</p>
-                    {!!paymentPopup?.transactionIds?.length && (
+                    {!!paymentPopup?.transactionId && (
                         <div className="rounded-2xl border border-border bg-background p-4">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-2">Transaction IDs</p>
-                            <div className="space-y-2">
-                                {paymentPopup.transactionIds.slice(0, 5).map((tx) => (
-                                    <p key={tx} className="text-xs font-bold break-all">{tx}</p>
-                                ))}
-                                {paymentPopup.transactionIds.length > 5 && (
-                                    <p className="text-[10px] font-bold text-text-secondary">+{paymentPopup.transactionIds.length - 5} more</p>
-                                )}
-                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-2">Transaction ID</p>
+                            <p className="text-xs font-bold break-all">{paymentPopup.transactionId}</p>
                         </div>
                     )}
                     <Button
@@ -268,7 +261,7 @@ export default function CheckoutPage() {
                                     <div className="flex items-center gap-4 bg-primary/5 p-6 rounded-[2.5rem] border border-primary/10">
                                         <ShieldCheck className="text-primary shrink-0" size={24} />
                                         <p className="text-[10px] font-bold text-text-secondary leading-relaxed uppercase italic">
-                                            {t('cart.securedByEscrow')}. {t('cart.separateCheckout')}.
+                                            {t('cart.securedByEscrow')}.
                                         </p>
                                     </div>
 

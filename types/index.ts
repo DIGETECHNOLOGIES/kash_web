@@ -17,6 +17,11 @@ export interface User {
     last_name?: string;
 }
 
+export interface ShopImage {
+    id: number;
+    image: string;
+}
+
 export interface Shop {
     id: string;
     name: string;
@@ -42,7 +47,7 @@ export interface Shop {
     description?: string;
     totalOrders?: number;
     revenue?: number;
-    additional_images?: string[];
+    additional_images?: ShopImage[];
 }
 
 export interface Product {

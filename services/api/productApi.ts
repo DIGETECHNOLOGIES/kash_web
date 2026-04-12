@@ -132,10 +132,7 @@ export const productApi = {
 
             const response = await apiClient.post<any>(
                 PRODUCT_ENDPOINTS.CREATE_PRODUCT,
-                formData,
-                {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                }
+                formData
             );
             return mapProduct(response.data);
         } catch (error: any) {
@@ -177,10 +174,7 @@ export const productApi = {
 
             const response = await apiClient.patch<any>(
                 PRODUCT_ENDPOINTS.UPDATE_PRODUCT(productId),
-                formData,
-                {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                }
+                formData
             );
             return mapProduct(response.data);
         } catch (error: any) {

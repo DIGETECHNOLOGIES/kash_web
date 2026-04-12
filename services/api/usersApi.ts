@@ -63,13 +63,11 @@ export const usersApi = {
                     }
                 });
                 payload = formData;
-                headers = { 'Content-Type': 'multipart/form-data' };
             }
 
             const response = await apiClient.patch<User>(
                 USER_ENDPOINTS.UPDATE_PROFILE,
-                payload,
-                { headers }
+                payload
             );
             return response.data;
         } catch (error: any) {
@@ -140,6 +138,32 @@ export const usersApi = {
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'Update Push Token');
+        }
+    },
+
+    /**
+     * Delete the authenticated user's account
+     */
+    deleteAccount: async (): Promise<void> => {
+        try {
+            await apiClient.delete(`${USER_ENDPOINTS.ME}delete-account/`);
+        } catch (error: any) {
+            throw handleAPIError(error, 'Delete Account');
+        }
+    },
+
+    /**
+     * Change current user password
+     */
+    changePassword: async (data: any): Promise<{ detail: string }> => {
+        try {
+            const response = await apiClient.post<{ detail: string }>(
+                `${USER_ENDPOINTS.ME}change-password/`,
+                data
+            );
+            return response.data;
+        } catch (error: any) {
+            throw handleAPIError(error, 'Change Password');
         }
     },
 };

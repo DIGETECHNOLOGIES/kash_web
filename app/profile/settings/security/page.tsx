@@ -32,7 +32,14 @@ export default function SecuritySettingsPage() {
                     <Card className="p-8 rounded-[2.5rem] border-border/40 shadow-sm">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-sm font-black uppercase tracking-widest text-text-secondary italic">Password Strategy</h3>
-                            <Button variant="outline" size="sm" className="rounded-xl h-10 px-6">Change</Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-xl h-10 px-6"
+                                onClick={() => router.push('/profile/settings/security/change-password')}
+                            >
+                                Change
+                            </Button>
                         </div>
 
                         <div className="space-y-4">

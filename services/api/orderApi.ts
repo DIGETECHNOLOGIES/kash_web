@@ -53,6 +53,7 @@ const mapOrder = (o: any): Order => ({
 interface CreateOrderData {
     product: number;
     quantity: number;
+    delivery_location?: string;
 }
 
 interface ConfirmDeliveryData {

@@ -1,6 +1,6 @@
 export const API_CONFIG = {
-    // BASE_URL: 'http://localhost:8000', // Development (should be env var in production)
-    BASE_URL: 'https://api.digetech.org', // Production
+    BASE_URL: 'http://localhost:8001', // Development (should be env var in production)
+    // BASE_URL: 'https://api.digetech.org', // Production
     TIMEOUT: 30000,
     RETRY_ATTEMPTS: 3,
 };

@@ -222,7 +222,7 @@ export default function ShopOrdersPage() {
 
                                             {/* Action Buttons */}
                                             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-end gap-3 w-full sm:w-auto mt-6 sm:mt-0 pt-8 sm:pt-0 border-t sm:border-t-0 border-border/40 shrink-0">
-                                                {order.status === 'PENDING' && (
+                                                {/* {order.status === 'PENDING' && (
                                                     <Button
                                                         onClick={() => updateStatusMutation.mutate({ id: order.id, status: 'PROCESSING' })}
                                                         isLoading={updateStatusMutation.isPending}
@@ -239,7 +239,7 @@ export default function ShopOrdersPage() {
                                                     >
                                                         Mark Shipped <Truck size={18} className="ml-1" />
                                                     </Button>
-                                                )}
+                                                )} */}
                                                 <Button
                                                     variant="outline"
                                                     onClick={() => router.push(`/profile/orders/${order.id}`)}
