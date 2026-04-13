@@ -84,6 +84,7 @@ export const ORDER_ENDPOINTS = {
     CONFIRM_DELIVERY: (id: string | number) => `${API_PATHS.ORDERS}/orders/${id}/confirm_delivery/`,
     UPDATE_ORDER_STATUS: (id: string | number) => `${API_PATHS.ORDERS}/orders/${id}/status/`,
     COMPLAIN_ORDER: (id: string | number) => `${API_PATHS.ORDERS}/orders/${id}/complain/`,
+    REPORT_NOT_DELIVERED: (id: string | number) => `${API_PATHS.ORDERS}/orders/${id}/report_not_delivered/`,
     CREATE_INVOICE: `${API_PATHS.ORDERS}/orders/create_invoice/`,
 } as const;
 

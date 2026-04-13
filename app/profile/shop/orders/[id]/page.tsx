@@ -72,6 +72,17 @@ export default function ShopOrderDetailPage() {
         }
     });
 
+    const reportNotDeliveredMutation = useMutation({
+        mutationFn: () => orderApi.reportNotDelivered(id as string),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['seller-order', id] });
+            toast.success('Non-confirmation reported successfully');
+        },
+        onError: (error: any) => {
+            toast.error(error?.message || 'Failed to report non-confirmation');
+        }
+    });
+
     const getStatusIcon = (status: string) => {
         switch (status?.toUpperCase()) {
             case 'PENDING': return Clock;
@@ -342,13 +353,28 @@ export default function ShopOrderDetailPage() {
                                     <p className="text-xs font-medium italic">{order.complaint_reason || 'Reported Issue'}</p>
                                 </div>
                             ) : (
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsComplaintModalOpen(true)}
-                                    className="w-full rounded-2xl h-14 font-black uppercase italic border-error/20 text-error hover:bg-error/5"
-                                >
-                                    Report Buyer
-                                </Button>
+                                <div className="w-full space-y-4">
+                                    {order.status === 'SHIPPED' && (
+                                        <Button
+                                            onClick={() => {
+                                                if (confirm('Are you sure you want to report that this product has not been confirmed delivered?')) {
+                                                    reportNotDeliveredMutation.mutate();
+                                                }
+                                            }}
+                                            isLoading={reportNotDeliveredMutation.isPending}
+                                            className="w-full rounded-2xl h-14 font-black uppercase italic bg-primary hover:bg-primary/90 text-white border-none shadow-xl shadow-primary/20"
+                                        >
+                                            Report Non-Confirmation
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsComplaintModalOpen(true)}
+                                        className="w-full rounded-2xl h-14 font-black uppercase italic border-error/20 text-error hover:bg-error/5"
+                                    >
+                                        Report Other Issue
+                                    </Button>
+                                </div>
                             )}
                         </Card>
                     </div>

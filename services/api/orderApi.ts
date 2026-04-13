@@ -203,6 +203,25 @@ export const orderApi = {
     },
 
     /**
+     * Report that a product has not been confirmed delivered
+     * POST /api/orders/orders/{id}/report_not_delivered/
+     */
+    reportNotDelivered: async (
+        orderId: string | number,
+        reason?: string
+    ): Promise<{ status: string; detail?: string }> => {
+        try {
+            const response = await apiClient.post<{ status: string; detail?: string }>(
+                ORDER_ENDPOINTS.REPORT_NOT_DELIVERED(orderId),
+                { reason }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw handleAPIError(error, 'Report Non-Delivery');
+        }
+    },
+
+    /**
      * Create an invoice for a customer
      */
     createInvoice: async (data: {

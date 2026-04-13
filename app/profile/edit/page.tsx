@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
@@ -8,7 +8,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import {
-    User,
+    User as UserIcon,
     Mail,
     Smartphone,
     MapPin,
@@ -20,13 +20,17 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { usersApi } from '@/services/api/usersApi';
 
 export default function EditProfilePage() {
     const { t } = useTranslation();
     const router = useRouter();
-    const { user } = useAuthStore();
+    const { user, updateUser } = useAuthStore();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [loading, setLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(user?.image || null);
     const [formData, setFormData] = useState({
         username: user?.username || '',
         email: user?.email || '',
@@ -34,15 +38,55 @@ export default function EditProfilePage() {
         location: user?.location || '',
     });
 
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validate file size (e.g., 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Image size must be less than 5MB');
+                return;
+            }
+            setSelectedFile(file);
+            const url = URL.createObjectURL(file);
+            setPreviewUrl(url);
+        }
+    };
+
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+
+        try {
+            const dataToUpdate: any = {
+                username: formData.username,
+                number: formData.number,
+                location: formData.location,
+            };
+
+            if (selectedFile) {
+                dataToUpdate.image = selectedFile;
+            }
+
+            const updatedUser = await usersApi.updateProfile(dataToUpdate);
+            if (user) {
+                updateUser({ ...user, ...updatedUser });
+            } else {
+                updateUser(updatedUser);
+            }
+
             toast.success('Profile updated successfully!');
             router.back();
-        }, 1500);
+            router.refresh();
+        } catch (error: any) {
+            console.error('Update failed:', error);
+            toast.error(error.message || 'Failed to update profile');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -61,15 +105,33 @@ export default function EditProfilePage() {
                 </header>
 
                 <form onSubmit={handleUpdate} className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*"
+                        className="hidden"
+                    />
+
                     {/* Avatar Area */}
                     <div className="lg:col-span-1 lg:sticky lg:top-24 h-fit">
                         <Card className="p-8 rounded-[3rem] border-none shadow-2xl bg-surface/50 backdrop-blur-md flex flex-col items-center">
                             <div className="relative mb-6">
                                 <div className="h-32 w-32 rounded-[2.5rem] bg-background border-4 border-white shadow-xl flex items-center justify-center text-4xl font-black italic text-primary overflow-hidden">
-                                    {user?.username?.[0].toUpperCase()}
+                                    {previewUrl ? (
+                                        <img
+                                            src={previewUrl}
+                                            alt={user?.username}
+                                            className="h-full w-full object-cover"
+                                            onError={() => setPreviewUrl(null)}
+                                        />
+                                    ) : (
+                                        user?.username?.[0].toUpperCase()
+                                    )}
                                 </div>
                                 <button
                                     type="button"
+                                    onClick={triggerFileInput}
                                     className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all border-4 border-white"
                                 >
                                     <Camera size={18} />
@@ -99,7 +161,7 @@ export default function EditProfilePage() {
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary ml-1">Username</label>
                                     <div className="relative group">
-                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-text-secondary group-focus-within:text-primary transition-colors" />
+                                        <UserIcon className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-text-secondary group-focus-within:text-primary transition-colors" />
                                         <input
                                             value={formData.username}
                                             onChange={(e) => setFormData({ ...formData, username: e.target.value })}

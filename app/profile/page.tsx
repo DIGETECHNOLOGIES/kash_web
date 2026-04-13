@@ -69,8 +69,12 @@ export default function ProfilePage() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full blur-[100px] opacity-20 translate-x-1/2 -translate-y-1/2" />
 
                     <div className="relative">
-                        <div className="h-32 w-32 rounded-[2.5rem] bg-white/10 backdrop-blur-md border-4 border-white/20 flex items-center justify-center text-4xl font-black italic">
-                            {user?.username?.[0].toUpperCase()}
+                        <div className="h-32 w-32 rounded-[2.5rem] bg-white/10 backdrop-blur-md border-4 border-white/20 flex items-center justify-center text-4xl font-black italic overflow-hidden">
+                            {user?.image ? (
+                                <img src={user.image} alt={user.username} className="h-full w-full object-cover" />
+                            ) : (
+                                user?.username?.[0].toUpperCase()
+                            )}
                         </div>
                         <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-primary flex items-center justify-center border-4 border-secondary shadow-lg">
                             <ShieldCheck size={20} />

@@ -8,19 +8,7 @@
 import apiClient from './apiClient';
 import { USER_ENDPOINTS, PAGINATION } from './apiConstants';
 import { handleAPIError } from './apiErrorHandler';
-
-interface User {
-    id: string;
-    username: string;
-    email: string;
-    number: string;
-    location?: string;
-    image?: string;
-    is_seller: boolean;
-    referred_by?: string;
-    date_joined?: string;
-    has_shop?: boolean;
-}
+import { User } from '@/types';
 
 interface PaginatedResponse<T> {
     count: number;

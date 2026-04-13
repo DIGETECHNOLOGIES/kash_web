@@ -123,8 +123,12 @@ export function Navbar() {
 
                     {isAuthenticated ? (
                         <Link href="/profile" className="hidden sm:flex items-center gap-2 rounded-2xl border border-border bg-background/50 p-1.5 pr-4 hover:border-primary/50 transition-all shadow-sm">
-                            <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center text-white font-black italic shadow-lg shadow-primary/20">
-                                {user?.username?.[0].toUpperCase()}
+                            <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center text-white font-black italic shadow-lg shadow-primary/20 overflow-hidden">
+                                {user?.image ? (
+                                    <img src={user.image} alt={user.username} className="h-full w-full object-cover" />
+                                ) : (
+                                    user?.username?.[0].toUpperCase()
+                                )}
                             </div>
                             <span className="text-[11px] font-black italic uppercase tracking-tighter">{user?.username}</span>
                         </Link>
