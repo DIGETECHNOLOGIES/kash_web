@@ -165,7 +165,7 @@ export default function MessagesPage() {
     const [sendAsShopIdOverride, setSendAsShopIdOverride] = useState<string | null>(null);
     const [myShopId, setMyShopId] = useState<string | null>(null);
 
-    const didInitFromParamsRef = useRef(false);
+    const lastHandledParamsRef = useRef<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -235,11 +235,8 @@ export default function MessagesPage() {
         messagingApi.markAsRead(id).catch(() => { });
     }, []);
 
-    // ── Init from URL params (match mobile behavior) ───────────────────────
+    // ── Init/update from URL params (supports in-place navigation) ─────────
     useEffect(() => {
-        if (didInitFromParamsRef.current) return;
-        didInitFromParamsRef.current = true;
-
         const convoId = searchParams.get('convo');
         const shopId = searchParams.get('shop') || searchParams.get('shopId');
         const recipientId = searchParams.get('recipientId');
@@ -248,6 +245,27 @@ export default function MessagesPage() {
         const orderId = searchParams.get('orderId');
         const productId = searchParams.get('productId');
         const initialMessage = searchParams.get('initialMessage');
+
+        const signature = JSON.stringify({
+            convoId: convoId || null,
+            shopId: shopId || null,
+            recipientId: recipientId || null,
+            roleParam: roleParam || null,
+            sendAsShopId: sendAsShopId || null,
+            orderId: orderId || null,
+            productId: productId || null,
+            initialMessage: initialMessage || null,
+        });
+
+        // If we already handled these params, only ensure the chat is visible.
+        if (lastHandledParamsRef.current === signature) {
+            if (convoId && (selectedId !== String(convoId) || mobileView !== 'chat')) {
+                handleSelectConversation(String(convoId));
+            }
+            return;
+        }
+
+        lastHandledParamsRef.current = signature;
 
         if (sendAsShopId) setSendAsShopIdOverride(String(sendAsShopId));
 
@@ -302,7 +320,7 @@ export default function MessagesPage() {
             }
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, handleSelectConversation, router]);
+    }, [searchParams, handleSelectConversation, router, selectedId, mobileView]);
 
     const handleSend = (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -337,7 +355,14 @@ export default function MessagesPage() {
                     <button
                         key={`order-${index}`}
                         type="button"
-                        onClick={() => router.push(`/profile/orders/${id}`)}
+                        onClick={() => {
+                            const role = activeConversation?.selfRole;
+                            if (role === 'SHOP') {
+                                router.push(`/profile/shop/orders/${id}`);
+                            } else {
+                                router.push(`/profile/orders/${id}`);
+                            }
+                        }}
                         className={cn(
                             'mt-1 mb-2 w-full text-left rounded-2xl border px-4 py-3 transition-colors',
                             isOwn ? 'border-white/25 bg-white/15 hover:bg-white/20' : 'border-primary/15 bg-primary/5 hover:bg-primary/10'
@@ -641,7 +666,7 @@ export default function MessagesPage() {
                                     </button>
 
                                     {showMenu && (
-                                                <div className="absolute top-12 right-0 bg-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl p-1.5 w-64 z-[100] border border-border/40 animate-in fade-in zoom-in duration-200">
+                                        <div className="absolute top-12 right-0 bg-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl p-1.5 w-64 z-[100] border border-border/40 animate-in fade-in zoom-in duration-200">
                                             {user?.has_shop && (
                                                 <button
                                                     onClick={() => {
@@ -649,7 +674,7 @@ export default function MessagesPage() {
                                                         setShowInvoiceModal(true);
                                                         fetchShopProducts();
                                                     }}
-                                                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 text-text transition-all text-left"
+                                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 text-text transition-all text-left"
                                                 >
                                                     <FilePlus size={20} className="text-text-secondary" />
                                                     <span className="text-sm font-medium">Create an Invoice</span>
@@ -657,7 +682,7 @@ export default function MessagesPage() {
                                             )}
                                             <button
                                                 onClick={() => setShowMenu(false)}
-                                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 text-red-500 transition-all text-left"
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 text-red-500 transition-all text-left"
                                             >
                                                 <X size={20} />
                                                 <span className="text-sm font-medium">{t('common.close') || 'Close Menu'}</span>
@@ -668,7 +693,7 @@ export default function MessagesPage() {
                             </div>
 
                             {/* Messages Area */}
-                                    <div className="wa-messages bg-background">
+                            <div className="wa-messages bg-background">
                                 <div className="wa-messages-bg" />
 
                                 {isLoadingChat ? (

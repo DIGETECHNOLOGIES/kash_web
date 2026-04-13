@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
-import { Input } from '@/components/common/Input';
 import { ChevronLeft, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { usersApi } from '@/services/api/usersApi';

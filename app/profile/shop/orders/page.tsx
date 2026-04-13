@@ -242,7 +242,7 @@ export default function ShopOrdersPage() {
                                                 )} */}
                                                 <Button
                                                     variant="outline"
-                                                    onClick={() => router.push(`/profile/orders/${order.id}`)}
+                                                    onClick={() => router.push(`/profile/shop/orders/${order.id}`)}
                                                     className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic border-border/60 hover:border-primary/50 text-[10px]"
                                                 >
                                                     Details <ChevronRight size={18} className="ml-1" />
