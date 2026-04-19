@@ -20,6 +20,7 @@ import {
     MapPin,
     ExternalLink,
     MessageSquare,
+    AlertCircle,
     Check,
     Store,
     User
@@ -75,6 +76,17 @@ export default function ShopOrdersPage() {
             default: return 'primary';
         }
     };
+
+    const reportNotDeliveredMutation = useMutation({
+        mutationFn: (id: string | number) => orderApi.reportNotDelivered(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
+            toast.success('Non-confirmation reported successfully');
+        },
+        onError: (error: any) => {
+            toast.error(error?.message || 'Failed to report non-confirmation');
+        }
+    });
 
     const orders = ordersData?.results || [];
     const filteredOrders = orders.filter(o => {
@@ -222,11 +234,11 @@ export default function ShopOrdersPage() {
 
                                             {/* Action Buttons */}
                                             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-end gap-3 w-full sm:w-auto mt-6 sm:mt-0 pt-8 sm:pt-0 border-t sm:border-t-0 border-border/40 shrink-0">
-                                                {/* {order.status === 'PENDING' && (
+                                                {order.status === 'PENDING' && (
                                                     <Button
                                                         onClick={() => updateStatusMutation.mutate({ id: order.id, status: 'PROCESSING' })}
                                                         isLoading={updateStatusMutation.isPending}
-                                                        className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic bg-info hover:bg-info/90 text-[10px]"
+                                                        className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic bg-info hover:bg-info/90 text-[10px] border-none shadow-lg shadow-info/20"
                                                     >
                                                         Accept <Check size={18} className="ml-1" />
                                                     </Button>
@@ -235,11 +247,24 @@ export default function ShopOrdersPage() {
                                                     <Button
                                                         onClick={() => updateStatusMutation.mutate({ id: order.id, status: 'SHIPPED' })}
                                                         isLoading={updateStatusMutation.isPending}
-                                                        className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic bg-primary text-[10px]"
+                                                        className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic bg-primary hover:bg-primary/90 text-white text-[10px] border-none shadow-lg shadow-primary/20"
                                                     >
                                                         Mark Shipped <Truck size={18} className="ml-1" />
                                                     </Button>
-                                                )} */}
+                                                )}
+                                                {order.status === 'SHIPPED' && !order.is_complained && (
+                                                    <Button
+                                                        onClick={() => {
+                                                            if (confirm('Report that this product has been delivered but the buyer has not confirmed?')) {
+                                                                reportNotDeliveredMutation.mutate(order.id);
+                                                            }
+                                                        }}
+                                                        isLoading={reportNotDeliveredMutation.isPending}
+                                                        className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic bg-error hover:bg-error/90 text-white text-[10px] border-none shadow-lg shadow-error/20"
+                                                    >
+                                                        Report Non-Confirmation <AlertCircle size={18} className="ml-1" />
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     variant="outline"
                                                     onClick={() => router.push(`/profile/shop/orders/${order.id}`)}
