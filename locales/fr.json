@@ -751,6 +751,28 @@
     "helpSupport": "Aide & Support",
     "about": "À Propos",
     "loginRegister": "Connexion / Inscription",
-    "guestUser": "Utilisateur Invité"
+    "guestUser": "Utilisateur Invité",
+    "whatsappAssistant": "Assistant WhatsApp"
+  },
+  "whatsappAssistant": {
+    "title": "Assistant WhatsApp",
+    "subtitle": "Gérez le catalogue de votre boutique via WhatsApp",
+    "connected": "Connecté",
+    "notConnected": "Non connecté",
+    "connectedWithPhone": "Connecté ({{phone}})",
+    "disconnectNumber": "Déconnecter le numéro",
+    "connectNumber": "Connecter un numéro WhatsApp",
+    "currentPlan": "Forfait actuel",
+    "planBadge": "Forfait {{plan}}",
+    "planPrice": "{{price}} XAF / mois",
+    "freePlanPrice": "0 XAF / mois",
+    "productsViaWhatsApp": "Produits via WhatsApp",
+    "productInfoQueries": "Demandes d'informations produits",
+    "unlimited": "Illimité",
+    "freeAppNotice": "Les produits ajoutés directement via l'application mobile et le tableau de bord web KASH restent",
+    "freeAndUnlimited": "gratuits et illimités",
+    "yourStore": "Votre Boutique",
+    "storeBannerTitle": "Assistant IA WhatsApp pour Boutique",
+    "storeBannerSubtitle": "Ajoutez des produits, mettez à jour les stocks et prix via WhatsApp"
   }
 }
