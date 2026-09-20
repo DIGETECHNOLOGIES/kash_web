@@ -68,7 +68,7 @@ export default function LoginPage() {
                 } catch {
                     // If profile fetch fails, we still have the token – proceed
                 }
-                router.push('/');
+                router.push(redirectTo);
             } else {
                 // Check if OTP verification needed
                 if (response.detail.includes('OTP') || response.next === 'verify') {

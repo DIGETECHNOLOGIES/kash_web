@@ -51,6 +51,7 @@ interface CreateShopData {
     id_card_back: any;
     shop_images?: any;
     owner_image?: any;
+    referral_code?: string;
     images?: any[];
 }
 
@@ -118,6 +119,10 @@ export const shopApi = {
 
             if (shopData.owner_image) {
                 formData.append('owner_image', shopData.owner_image);
+            }
+
+            if (shopData.referral_code) {
+                formData.append('referral_code', shopData.referral_code);
             }
 
             if (shopData.images && Array.isArray(shopData.images)) {

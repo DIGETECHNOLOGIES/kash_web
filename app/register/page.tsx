@@ -52,9 +52,12 @@ export default function RegisterPage() {
                 ...data,
                 password2: data.confirmPassword,
             });
+            const searchParams = new URLSearchParams(window.location.search);
+            const redirectParam = searchParams.get('redirect');
+            const redirectQuery = redirectParam ? `&redirect=${encodeURIComponent(redirectParam)}` : '';
             setIsSuccess(true);
             setTimeout(() => {
-                router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
+                router.push(`/verify-otp?email=${encodeURIComponent(data.email)}${redirectQuery}`);
             }, 2000);
         } catch (err: any) {
             setError(err.message || 'Registration failed. Please try again.');

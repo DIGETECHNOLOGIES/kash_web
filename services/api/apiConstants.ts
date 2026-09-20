@@ -86,6 +86,10 @@ export const ORDER_ENDPOINTS = {
     COMPLAIN_ORDER: (id: string | number) => `${API_PATHS.ORDERS}/orders/${id}/complain/`,
     REPORT_NOT_DELIVERED: (id: string | number) => `${API_PATHS.ORDERS}/orders/${id}/report_not_delivered/`,
     CREATE_INVOICE: `${API_PATHS.ORDERS}/orders/create_invoice/`,
+    CREATE_PAYMENT_LINK: `${API_PATHS.ORDERS}/payment-links/`,
+    MY_PAYMENT_LINKS: `${API_PATHS.ORDERS}/payment-links/my_links/`,
+    GET_PAYMENT_LINK: (code: string) => `${API_PATHS.ORDERS}/payment-links/${code}/`,
+    CREATE_ORDER_FROM_LINK: (code: string) => `${API_PATHS.ORDERS}/payment-links/${code}/create_order/`,
 } as const;
 
 /**
@@ -323,4 +327,20 @@ export const CURRENCY = {
     SYMBOL: 'FCFA',
     DECIMAL_PLACES: 2,
     THOUSANDS_SEPARATOR: ',',
+} as const;
+
+/**
+ * WhatsApp AI Store Assistant Endpoints
+ */
+export const WHATSAPP_ASSISTANT_ENDPOINTS = {
+    PLANS: '/api/whatsapp-assistant/plans/',
+    STATUS: '/api/whatsapp-assistant/status/',
+    USAGE: '/api/whatsapp-assistant/usage/',
+    LINK_INITIATE: '/api/whatsapp-assistant/link/initiate/',
+    LINK_CONFIRM: '/api/whatsapp-assistant/link/confirm/',
+    DISCONNECT: '/api/whatsapp-assistant/disconnect/',
+    SUBSCRIBE: '/api/whatsapp-assistant/subscription/create/',
+    VERIFY_PAYMENT: (transId: string) => `/api/whatsapp-assistant/subscription/verify/${transId}/`,
+    WEB_TOKEN_CREATE: '/api/whatsapp-assistant/web-token/create/',
+    WEB_TOKEN_EXCHANGE: '/api/whatsapp-assistant/web-token/exchange/',
 } as const;

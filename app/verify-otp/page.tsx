@@ -88,9 +88,11 @@ function VerifyOtpContent() {
         setError(null);
         try {
             await authApi.verifyOtp(email, verificationCode);
+            const redirectParam = searchParams.get('redirect');
+            const loginUrl = redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login';
             setIsSuccess(true);
             setTimeout(() => {
-                router.push('/login');
+                router.push(loginUrl);
             }, 3000);
         } catch (err: any) {
             setError(err.message || t('otp.invalidVerificationCode'));

@@ -1,5 +1,4 @@
 import { toast } from 'sonner';
-
 import { formatCurrency } from '@/utils/formatters';
 
 const ORIGIN_FALLBACK = 'https://kash.digetech.org';
@@ -30,11 +29,11 @@ export function buildProductShareText(product: {
 }): string {
   const url = getProductShareUrl(product.id);
   const description = (product.description || '').trim();
-  const descriptionShort = description ? description.slice(0, 120) : '';
+  const descriptionShort = description ? (description.length > 120 ? `${description.slice(0, 120)}...` : description) : '';
   const location = product.location || 'Cameroon';
   const prev = product.previousPrice ? ` (was ${formatCurrency(product.previousPrice)})` : '';
 
-  return `🔥 *${product.name}*\n\n💰 Price: ${formatCurrency(product.price)}${prev}\n\n📍 ${location}\n\n📝 ${descriptionShort}\n\n👉 View on KASH: ${url}\n\n✨ Shop securely on KASH Marketplace!`;
+  return `🔥 *${product.name}*\n\n💰 Price: ${formatCurrency(product.price)}${prev}\n\n📍 ${location}\n\n${descriptionShort ? `📝 ${descriptionShort}\n\n` : ''}👉 View on KASH: ${url}\n\n✨ Shop securely on KASH Marketplace!`;
 }
 
 export function buildShopShareText(shop: {
@@ -68,8 +67,8 @@ export async function shareOrCopy(payload: {
   }
 
   try {
-    await navigator.clipboard.writeText(text);
-    toast.success(copiedToast || 'Details copied!');
+    await navigator.clipboard.writeText(url ? `${text}\n${url}` : text);
+    toast.success(copiedToast || 'Link and details copied!');
   } catch {
     toast.error('Sharing not supported on this browser');
   }

@@ -136,7 +136,7 @@ export const walletApi = {
      * Calculate withdrawal amount including charges
      */
     calculateWithdrawalCharges: (amount: number) => {
-        const platformFee = amount * 0.03;
+        const platformFee = amount * 0.005;
         const netPayout = amount - platformFee;
         const totalDeduction = amount;
 

@@ -223,6 +223,7 @@ export const orderApi = {
 
     /**
      * Create an invoice for a customer
+     * POST /api/orders/orders/create_invoice/
      */
     createInvoice: async (data: {
         product_id: string | number;
@@ -238,7 +239,85 @@ export const orderApi = {
             );
             return mapOrder(response.data);
         } catch (error: any) {
-            throw handleAPIError(error, 'Create Invoice');
+            const apiError = handleAPIError(error, 'Create Invoice');
+            throw apiError;
+        }
+    },
+
+    /**
+     * Create a shareable product payment link
+     * POST /api/orders/payment-links/
+     */
+    createPaymentLink: async (data: {
+        product_id: string | number;
+        price: number | string;
+        quantity?: number;
+        note?: string;
+    }): Promise<any> => {
+        try {
+            const response = await apiClient.post<any>(
+                ORDER_ENDPOINTS.CREATE_PAYMENT_LINK,
+                data
+            );
+            return response.data;
+        } catch (error: any) {
+            const apiError = handleAPIError(error, 'Create Payment Link');
+            throw apiError;
+        }
+    },
+
+    /**
+     * Get public payment link details by code
+     * GET /api/orders/payment-links/{code}/
+     */
+    getPaymentLink: async (code: string): Promise<any> => {
+        try {
+            const response = await apiClient.get<any>(
+                ORDER_ENDPOINTS.GET_PAYMENT_LINK(code)
+            );
+            return response.data;
+        } catch (error: any) {
+            const apiError = handleAPIError(error, 'Get Payment Link');
+            throw apiError;
+        }
+    },
+
+    /**
+     * Create order from payment link for authenticated buyer
+     * POST /api/orders/payment-links/{code}/create_order/
+     */
+    createOrderFromPaymentLink: async (
+        code: string,
+        data?: { quantity?: number; delivery_location?: string }
+    ): Promise<{ detail: string; order: Order }> => {
+        try {
+            const response = await apiClient.post<any>(
+                ORDER_ENDPOINTS.CREATE_ORDER_FROM_LINK(code),
+                data || {}
+            );
+            return {
+                detail: response.data.detail,
+                order: mapOrder(response.data.order),
+            };
+        } catch (error: any) {
+            const apiError = handleAPIError(error, 'Create Order from Payment Link');
+            throw apiError;
+        }
+    },
+
+    /**
+     * List payment links created by current shop owner
+     * GET /api/orders/payment-links/my_links/
+     */
+    getMyPaymentLinks: async (): Promise<any[]> => {
+        try {
+            const response = await apiClient.get<any>(
+                ORDER_ENDPOINTS.MY_PAYMENT_LINKS
+            );
+            return Array.isArray(response.data) ? response.data : response.data.results || [];
+        } catch (error: any) {
+            const apiError = handleAPIError(error, 'Get My Payment Links');
+            throw apiError;
         }
     },
 };

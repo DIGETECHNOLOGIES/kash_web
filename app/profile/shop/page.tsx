@@ -45,6 +45,7 @@ const shopSchema = yup.object().shape({
     ownerPhone: yup.string().required('Phone number is required'),
     whatsappNumber: yup.string().required('WhatsApp number is required'),
     description: yup.string(),
+    referral_code: yup.string(),
 });
 
 export default function ShopManagePage() {
@@ -170,6 +171,9 @@ export default function ShopManagePage() {
             address: data.location,
             email: user?.email || '',
         };
+        if (data.referral_code && typeof data.referral_code === 'string' && data.referral_code.trim()) {
+            formData.referral_code = data.referral_code.trim();
+        }
         createMutation.mutate(formData);
     };
 
@@ -229,6 +233,12 @@ export default function ShopManagePage() {
                                     <input {...register('whatsappNumber')} placeholder="677 000 000" className="w-full h-14 rounded-2xl bg-background border border-border px-6 text-sm focus:border-primary focus:outline-none transition-all font-bold italic" />
                                     {errors.whatsappNumber && <p className="text-[10px] text-error font-bold mt-1 ml-1">{errors.whatsappNumber.message as string}</p>}
                                 </div>
+                                {!user?.referredBy && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Referral Code (Optional)</label>
+                                        <input {...register('referral_code')} placeholder="Referrer phone number" className="w-full h-14 rounded-2xl bg-background border border-border px-6 text-sm focus:border-primary focus:outline-none transition-all font-bold italic" />
+                                    </div>
+                                )}
                             </div>
                             <div className="mt-8 space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Shop Description</label>
