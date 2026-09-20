@@ -126,13 +126,16 @@ export const whatsappAssistantApi = {
     },
 
     /**
-     * Create or change subscription plan (generates Fapshi checkout link for paid plans)
+     * Create or change subscription plan (direct USSD payment or switch to Free)
      */
     createSubscription: async (
         planSlug: string,
-        redirectUrl?: string
+        redirectUrl?: string,
+        phoneNumber?: string,
+        provider?: string
     ): Promise<{
         status: string;
+        direct_pay?: boolean;
         checkout_url?: string;
         transaction_reference?: string;
         subscription_id?: number;
@@ -143,6 +146,8 @@ export const whatsappAssistantApi = {
             const response = await apiClient.post(WHATSAPP_ASSISTANT_ENDPOINTS.SUBSCRIBE, {
                 plan_slug: planSlug,
                 redirect_url: redirectUrl || (typeof window !== 'undefined' ? `${window.location.origin}/dashboard/whatsapp-assistant/callback` : undefined),
+                phone_number: phoneNumber,
+                provider: provider,
             });
             return response.data;
         } catch (error) {
