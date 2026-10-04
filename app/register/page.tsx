@@ -13,6 +13,7 @@ import { authApi } from '@/services/api/authApi';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { motion, AnimatePresence } from 'framer-motion';
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 const schema = yup.object().shape({
     username: yup.string().min(3, 'Username too short').required('Username is required'),
@@ -211,6 +212,18 @@ export default function RegisterPage() {
                             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </Button>
                     </form>
+
+                    <div className="relative flex items-center justify-center my-6">
+                        <div className="border-t border-border w-full" />
+                        <span className="bg-surface px-3 text-[11px] font-semibold tracking-wider uppercase text-text-secondary absolute">
+                            OR
+                        </span>
+                    </div>
+
+                    <GoogleSignInButton
+                        text="Sign up with Google"
+                        referralCode={searchParams.get('referral_code') || searchParams.get('ref') || undefined}
+                    />
                 </Card>
             </motion.div>
         </div>

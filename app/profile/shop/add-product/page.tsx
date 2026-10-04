@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -23,7 +23,10 @@ import {
     Info,
     DollarSign,
     Package,
-    Layers
+    Layers,
+    Search,
+    ChevronDown,
+    X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -49,13 +52,42 @@ export default function AddProductPage() {
         queryFn: () => productApi.listCategories(),
     });
 
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
         resolver: yupResolver(productSchema),
         defaultValues: {
             quantity: 1,
             min_quantity: 1,
         }
     });
+
+    const [categoryOpen, setCategoryOpen] = useState(false);
+    const [categorySearch, setCategorySearch] = useState('');
+    const selectedCategory = watch('category');
+    const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+                setCategoryOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const categoryList: any[] = Array.isArray((categories as any)?.results)
+        ? (categories as any).results
+        : Array.isArray(categories)
+        ? categories
+        : [];
+
+    const filteredCategories = categoryList.filter((cat: any) =>
+        (cat.name || '').toLowerCase().includes(categorySearch.toLowerCase().trim())
+    );
+
+    const selectedCategoryObj = categoryList.find(
+        (c: any) => String(c.id) === String(selectedCategory) || c.name === selectedCategory
+    );
 
     const { data: shopData } = useQuery({
         queryKey: ['user-shop'],
@@ -135,20 +167,98 @@ export default function AddProductPage() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary ml-1">Category</label>
+                                    <div className="space-y-2" ref={categoryDropdownRef}>
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary ml-1">Category *</label>
                                         <div className="relative">
-                                            <Layers className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
-                                            <select
-                                                {...register('category')}
-                                                className="w-full h-16 rounded-[1.5rem] bg-background border-2 border-border/40 pl-14 pr-4 text-sm font-bold appearance-none focus:border-primary focus:outline-none transition-all shadow-inner uppercase tracking-wider"
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCategoryOpen(!categoryOpen);
+                                                    setCategorySearch('');
+                                                }}
+                                                className={`w-full h-16 rounded-[1.5rem] bg-background border-2 ${
+                                                    errors.category ? 'border-error' : categoryOpen ? 'border-primary' : 'border-border/40'
+                                                } pl-14 pr-6 text-sm font-bold flex items-center justify-between transition-all shadow-inner uppercase tracking-wider text-left`}
                                             >
-                                                <option value="">Select Category</option>
-                                                {categories?.results?.map((cat: any) => (
-                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                                ))}
-                                            </select>
+                                                <Layers className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
+                                                <span className={`truncate ${selectedCategoryObj ? 'text-text-primary' : 'text-text-secondary font-medium'}`}>
+                                                    {selectedCategoryObj?.name || 'Select Category'}
+                                                </span>
+                                                <ChevronDown className={`h-5 w-5 text-text-secondary shrink-0 transition-transform duration-200 ${categoryOpen ? 'rotate-180 text-primary' : ''}`} />
+                                            </button>
+
+                                            {/* Hidden form input for react-hook-form */}
+                                            <input type="hidden" {...register('category')} />
+
+                                            {/* Searchable Dropdown Popover */}
+                                            <AnimatePresence>
+                                                {categoryOpen && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                                                        transition={{ duration: 0.15 }}
+                                                        className="absolute z-50 left-0 right-0 mt-2 bg-surface border-2 border-border/80 rounded-[1.5rem] shadow-2xl overflow-hidden backdrop-blur-xl"
+                                                    >
+                                                        {/* Search bar inside dropdown */}
+                                                        <div className="p-3 border-b border-border/40 bg-background/50 flex items-center gap-2">
+                                                            <Search className="h-4 w-4 text-text-secondary shrink-0 ml-2" />
+                                                            <input
+                                                                type="text"
+                                                                value={categorySearch}
+                                                                onChange={(e) => setCategorySearch(e.target.value)}
+                                                                placeholder="Search categories..."
+                                                                className="w-full bg-transparent text-sm font-medium focus:outline-none placeholder:text-text-secondary/60 py-1"
+                                                                autoFocus
+                                                            />
+                                                            {categorySearch && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setCategorySearch('')}
+                                                                    className="p-1 text-text-secondary hover:text-text-primary"
+                                                                >
+                                                                    <X className="h-3.5 w-3.5" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Category items list */}
+                                                        <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+                                                            {filteredCategories.length > 0 ? (
+                                                                filteredCategories.map((cat: any) => {
+                                                                    const isSelected = String(cat.id) === String(selectedCategory) || cat.name === selectedCategory;
+                                                                    return (
+                                                                        <button
+                                                                            key={cat.id}
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                setValue('category', cat.id, { shouldValidate: true });
+                                                                                setCategoryOpen(false);
+                                                                            }}
+                                                                            className={`w-full px-4 py-3 rounded-xl text-left text-xs font-bold uppercase tracking-wider flex items-center justify-between transition-all ${
+                                                                                isSelected
+                                                                                    ? 'bg-primary text-white shadow-md'
+                                                                                    : 'hover:bg-background text-text-primary'
+                                                                            }`}
+                                                                        >
+                                                                            <span>{cat.name}</span>
+                                                                            {isSelected && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                                                        </button>
+                                                                    );
+                                                                })
+                                                            ) : (
+                                                                <div className="p-4 text-center text-xs text-text-secondary">
+                                                                    No categories found for "{categorySearch}"
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
+                                        {errors.category && (
+                                            <p className="text-xs text-error font-bold mt-1 ml-1">{errors.category.message as string}</p>
+                                        )}
                                     </div>
 
                                     <div className="space-y-2">

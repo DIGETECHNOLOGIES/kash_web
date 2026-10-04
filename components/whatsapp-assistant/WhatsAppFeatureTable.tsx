@@ -2,6 +2,7 @@ import React from 'react';
 
 export const WhatsAppFeatureTable: React.FC = () => {
     const rows = [
+        { feature: 'Linked WhatsApp Numbers / Accounts', free: '1 Number', basic: '1 Number', business: '2 Numbers', enterprise: 'Up to 10 Numbers' },
         { feature: 'Monthly WhatsApp Product Additions', free: '10', basic: '50', business: '150', enterprise: 'Unlimited*' },
         { feature: 'Monthly Product Information Queries', free: '20', basic: '100', business: '300', enterprise: 'Unlimited*' },
         { feature: 'Forwarded Images & Photo Captions', free: '✓', basic: '✓', business: '✓', enterprise: '✓' },

@@ -13,9 +13,10 @@ import { formatImageUrl } from '@/utils/formatters';
 interface ReviewSectionProps {
     productId?: string | number;
     shopId?: string | number;
+    isOwner?: boolean;
 }
 
-export function ReviewSection({ productId, shopId }: ReviewSectionProps) {
+export function ReviewSection({ productId, shopId, isOwner = false }: ReviewSectionProps) {
     const { t } = useTranslation();
     const { isAuthenticated, user } = useAuthStore();
     const queryClient = useQueryClient();
@@ -40,7 +41,7 @@ export function ReviewSection({ productId, shopId }: ReviewSectionProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!comment.trim()) return;
+        if (!comment.trim() || isOwner) return;
         createReviewMutation.mutate({
             product: productId,
             shop: shopId,
@@ -62,7 +63,7 @@ export function ReviewSection({ productId, shopId }: ReviewSectionProps) {
             </div>
 
             {/* Review Form */}
-            {isAuthenticated && (
+            {isAuthenticated && !isOwner && (
                 <Card className="p-8 rounded-[2.5rem] bg-surface border-border/60">
                     <h3 className="text-sm font-black uppercase tracking-widest text-text-secondary mb-6 flex items-center gap-2 italic">
                         <MessageCircle size={16} />

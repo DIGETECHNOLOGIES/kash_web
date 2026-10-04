@@ -39,6 +39,8 @@ import { Button } from '@/components/common/Button';
 import EmojiPicker, { Theme as EmojiTheme } from 'emoji-picker-react';
 import { toast } from 'sonner';
 import { useQueryClient as useReactQueryClient } from '@tanstack/react-query';
+import { callService } from '@/services/callService';
+import { ActiveCallModal } from '@/components/common/CallUI';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Conversation {
@@ -181,6 +183,7 @@ export default function MessagesPage() {
     const [invoiceTotal, setInvoiceTotal] = useState(0);
     const [isSubmittingInvoice, setIsSubmittingInvoice] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
+    const [activeCall, setActiveCall] = useState<{ remoteUserName: string; callType: 'audio' | 'video' } | null>(null);
 
     // ── Data fetching ─────────────────────────────────────────────────────────
     const { data: conversationsData, isLoading: isLoadingList } = useQuery({
@@ -652,10 +655,36 @@ export default function MessagesPage() {
                                     </div>
                                 </div>
                                 <div className="wa-chat-header-actions relative">
-                                    <button className="wa-hdr-btn text-white w-10 h-10 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors">
+                                    <button
+                                        className="wa-hdr-btn text-white w-10 h-10 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors"
+                                        title="Audio call"
+                                        onClick={async () => {
+                                            if (!selectedId) return;
+                                            const name = otherParticipant?.name || otherParticipant?.username || 'User';
+                                            try {
+                                                await callService.startCall(selectedId, 'audio');
+                                                setActiveCall({ remoteUserName: name, callType: 'audio' });
+                                            } catch {
+                                                toast.error('Could not start audio call');
+                                            }
+                                        }}
+                                    >
                                         <Phone size={20} />
                                     </button>
-                                    <button className="wa-hdr-btn text-white w-10 h-10 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors hidden md:flex">
+                                    <button
+                                        className="wa-hdr-btn text-white w-10 h-10 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors hidden md:flex"
+                                        title="Video call"
+                                        onClick={async () => {
+                                            if (!selectedId) return;
+                                            const name = otherParticipant?.name || otherParticipant?.username || 'User';
+                                            try {
+                                                await callService.startCall(selectedId, 'video');
+                                                setActiveCall({ remoteUserName: name, callType: 'video' });
+                                            } catch {
+                                                toast.error('Could not start video call');
+                                            }
+                                        }}
+                                    >
                                         <Video size={20} />
                                     </button>
                                     <button
@@ -1330,6 +1359,13 @@ export default function MessagesPage() {
           .wa-sidebar { display: flex !important; }
         }
       `}</style>
+        {activeCall && (
+            <ActiveCallModal
+                remoteUserName={activeCall.remoteUserName}
+                callType={activeCall.callType}
+                onClose={() => setActiveCall(null)}
+            />
+        )}
         </MainLayout>
     );
 }

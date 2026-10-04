@@ -30,14 +30,14 @@ export function Navbar() {
         queryKey: ['unread-notifications'],
         queryFn: () => notificationApi.getUnreadCount(),
         enabled: isAuthenticated,
-        refetchInterval: 30000
+        refetchOnWindowFocus: false,
     });
 
     const { data: messageUnreadData } = useQuery({
         queryKey: ['unread-messages'],
         queryFn: () => messagingApi.getUnreadSummary(),
         enabled: isAuthenticated,
-        refetchInterval: 30000
+        refetchOnWindowFocus: false,
     });
 
     const handleSearch = (e: React.FormEvent) => {
@@ -71,6 +71,9 @@ export function Navbar() {
                         </Link>
                         <Link href="/shops" className="text-xs font-black hover:text-primary transition-colors uppercase italic tracking-widest text-text-secondary">
                             {t('home.shops')}
+                        </Link>
+                        <Link href="/pricing" className="text-xs font-black hover:text-primary transition-colors uppercase italic tracking-widest text-text-secondary">
+                            {t('common.pricing') || 'Pricing'}
                         </Link>
                     </nav>
                 </div>

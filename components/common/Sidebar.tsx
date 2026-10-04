@@ -28,7 +28,8 @@ import {
     X,
     LayoutGrid,
     Search,
-    Bell
+    Bell,
+    CreditCard
 } from 'lucide-react';
 import { notificationApi } from '@/services/api/notificationApi';
 import { cn } from '@/lib/utils';
@@ -63,17 +64,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
     const { data: unreadData } = useQuery({
-        queryKey: ['unreadCount'],
+        queryKey: ['unread-messages'],
         queryFn: () => messagingApi.getUnreadSummary(),
         enabled: isAuthenticated,
-        refetchInterval: 30000,
+        refetchOnWindowFocus: false,
     });
 
     const { data: notificationData } = useQuery({
-        queryKey: ['unreadNotificationsCount'],
+        queryKey: ['unread-notifications'],
         queryFn: () => notificationApi.getUnreadCount(),
         enabled: isAuthenticated,
-        refetchInterval: 30000,
+        refetchOnWindowFocus: false,
     });
 
     const unreadMessages = unreadData?.totalUnread || 0;
@@ -275,6 +276,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <MenuItem icon={Settings} label={t('sidebar.settings')} href="/profile/settings" />
                             <MenuItem icon={HelpCircle} label={t('sidebar.helpSupport')} href="/support" />
                             <MenuItem icon={Info} label={t('sidebar.about')} href="/about" />
+                            <MenuItem icon={CreditCard} label={t('common.pricing') || 'Plans & Pricing'} href="/pricing" />
 
                             <div className="mt-8 pt-4 border-t border-border">
                                 {isAuthenticated ? (

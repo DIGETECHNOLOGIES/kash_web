@@ -36,7 +36,34 @@ interface PasswordResetResponse {
     detail: string;
 }
 
+export interface GoogleAuthResponse {
+    access: string;
+    refresh: string;
+    is_new_user: boolean;
+    profile_completed: boolean;
+    user: any;
+}
+
 export const authApi = {
+    /**
+     * Authenticate or register with Google
+     */
+    googleAuth: async (payload: {
+        id_token?: string;
+        access_token?: string;
+        referral_code?: string;
+    }): Promise<GoogleAuthResponse> => {
+        try {
+            const response = await apiClient.post<GoogleAuthResponse>(
+                AUTH_ENDPOINTS.GOOGLE_AUTH,
+                payload
+            );
+            return response.data;
+        } catch (error: any) {
+            throw handleAPIError(error, 'Google Auth');
+        }
+    },
+
     /**
      * Login user with email and password
      */

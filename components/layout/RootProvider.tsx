@@ -6,6 +6,12 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
 import '@/locales/i18n';
 import { useThemeStore } from '@/store/themeStore';
+import dynamic from 'next/dynamic';
+
+const GlobalCallProvider = dynamic(
+    () => import('@/components/common/CallUI').then(m => m.GlobalCallProvider),
+    { ssr: false }
+);
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -33,8 +39,11 @@ export function RootProvider({ children }: { children: React.ReactNode }) {
     return (
         <QueryClientProvider client={queryClient}>
             <div className={mode === 'dark' ? 'dark' : ''}>
-                {children}
+                <GlobalCallProvider>
+                    {children}
+                </GlobalCallProvider>
             </div>
+            <Toaster position="top-right" richColors />
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
     );

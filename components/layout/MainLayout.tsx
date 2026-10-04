@@ -28,6 +28,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                                 <li><Link href="/products" className="hover:text-primary transition-colors">{t('home.products')}</Link></li>
                                 <li><Link href="/shops" className="hover:text-primary transition-colors">{t('home.shops')}</Link></li>
                                 <li><Link href="/categories" className="hover:text-primary transition-colors">{t('home.categories')}</Link></li>
+                                <li><Link href="/pricing" className="hover:text-primary transition-colors text-primary font-bold">{t('common.pricing') || 'Pricing & Plans'}</Link></li>
                             </ul>
                         </div>
                         <div className="space-y-4">

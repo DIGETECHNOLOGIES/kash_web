@@ -17,7 +17,12 @@ export const WhatsAppPlanCard: React.FC<Props> = ({
     const isPopular = plan.slug === 'basic';
     const isEnterprise = plan.slug === 'enterprise';
 
+    const maxAccounts = plan.max_whatsapp_accounts ?? (plan.slug === 'enterprise' ? 10 : plan.slug === 'business' ? 2 : 1);
     const features = [
+        {
+            name: `${maxAccounts} Linked WhatsApp Number${maxAccounts > 1 ? 's' : ''}`,
+            included: true,
+        },
         {
             name: `${plan.monthly_product_limit === -1 ? 'Unlimited' : plan.monthly_product_limit} products added via WhatsApp/mo`,
             included: true,

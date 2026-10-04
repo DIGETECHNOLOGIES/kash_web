@@ -14,6 +14,7 @@ import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 const schema = yup.object().shape({
     email: yup.string().email('auth.invalidEmail').required('auth.emailRequired'),
@@ -61,10 +62,16 @@ export default function LoginPage() {
                             referralCode: profile.referral_code || profile.number || '',
                             image: profile.image || null,
                             has_shop: profile.has_shop || false,
+                            location: profile.location || '',
                         } as any,
                         response.access,
                         response.refresh
                     );
+
+                    if (!profile.number || !profile.location) {
+                        router.push(`/complete-profile?redirect=${encodeURIComponent(redirectTo)}`);
+                        return;
+                    }
                 } catch {
                     // If profile fetch fails, we still have the token – proceed
                 }
@@ -175,6 +182,15 @@ export default function LoginPage() {
                             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </Button>
                     </form>
+
+                    <div className="relative flex items-center justify-center my-6">
+                        <div className="border-t border-border w-full" />
+                        <span className="bg-surface px-3 text-[11px] font-semibold tracking-wider uppercase text-text-secondary absolute">
+                            OR
+                        </span>
+                    </div>
+
+                    <GoogleSignInButton text="Continue with Google" />
 
                     <div className="mt-8 pt-6 border-t border-border">
                         <p className="text-center text-[10px] text-text-secondary leading-relaxed uppercase tracking-tighter">

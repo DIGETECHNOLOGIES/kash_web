@@ -28,6 +28,7 @@ export const AUTH_ENDPOINTS = {
     RESEND_OTP: `${API_PATHS.USERS}/resend-otp/`,
     FORGOT_PASSWORD: `${API_PATHS.USERS}/forgot-password/`,
     RESET_PASSWORD: `${API_PATHS.USERS}/reset-password/`,
+    GOOGLE_AUTH: `${API_PATHS.USERS}/google-auth/`,
 } as const;
 
 /**

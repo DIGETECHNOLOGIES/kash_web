@@ -48,6 +48,17 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
     const { addItem } = useCartStore();
     const { isAuthenticated, user } = useAuthStore();
 
+    const isOwner = Boolean(
+        user && (
+            (product as any)?.seller?.id === user.id ||
+            (product as any)?.seller_id === user.id ||
+            (product as any)?.seller === user.id ||
+            (product as any)?.shop?.owner_id === user.id ||
+            (product as any)?.shop?.owner?.id === user.id ||
+            (user as any)?.shops?.some((s: any) => String(s.id) === String((product as any)?.shopId || (product as any)?.shop_id || (product as any)?.shop?.id))
+        )
+    );
+
     const handleAddToCart = () => {
         if (!isAuthenticated) {
             router.push(`/login?redirect=/products/${product.id}`);
@@ -352,7 +363,7 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
 
             {/* Reviews Section */}
             <section className="mt-24 border-t border-border pt-24 mb-24">
-                <ReviewSection productId={product.id} />
+                <ReviewSection productId={product.id} isOwner={isOwner} />
             </section>
         </MainLayout>
     );

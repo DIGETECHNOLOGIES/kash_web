@@ -16,6 +16,7 @@ export interface WhatsAppPlan {
     allow_pdf_export: boolean;
     allow_payment_links: boolean;
     allow_advanced_automation: boolean;
+    max_whatsapp_accounts?: number;
     is_active: boolean;
 }
 
