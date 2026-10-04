@@ -29,6 +29,14 @@ const mapProduct = (p: any): Product => ({
     location: p.shop_location || p.location || 'Cameroon',
     category: p.category_name || 'General',
     allowReselling: !p.is_resale,
+    isResale: Boolean(p.is_resale),
+    originalProductId: p.original_product_id ?? p.original_product,
+    originalProductName: p.original_product_name,
+    originalProductPrice: p.original_product_price != null ? parseFloat(p.original_product_price) : undefined,
+    originalProductImage: p.original_product_image,
+    originalShopId: p.original_shop_id,
+    originalShopName: p.original_shop_name,
+    originalShopImage: p.original_shop_image,
     createdAt: p.created_at,
     updatedAt: p.updated_at,
     average_rating: p.average_rating,
@@ -45,6 +53,7 @@ interface Category {
     slug: string;
     created_at: string;
     updated_at: string;
+    product_count?: number;
 }
 
 interface CreateProductData {
@@ -219,16 +228,48 @@ export const productApi = {
      * List all product categories
      */
     listCategories: async (
-        page: number = PAGINATION.DEFAULT_PAGE,
-        pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE
+        optionsOrPage?: { page?: number; pageSize?: number; page_size?: number; has_products?: boolean; all?: boolean } | number,
+        pageSizeArg?: number
     ): Promise<PaginatedResponse<Category>> => {
         try {
-            const response = await apiClient.get<PaginatedResponse<Category>>(
+            let page: number = PAGINATION.DEFAULT_PAGE;
+            let pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE;
+            let hasProducts: boolean | undefined = undefined;
+            let all: boolean | undefined = undefined;
+
+            if (typeof optionsOrPage === 'object' && optionsOrPage !== null) {
+                if (optionsOrPage.page !== undefined) page = optionsOrPage.page;
+                if (optionsOrPage.pageSize !== undefined) pageSize = optionsOrPage.pageSize;
+                if (optionsOrPage.page_size !== undefined) pageSize = optionsOrPage.page_size;
+                hasProducts = optionsOrPage.has_products;
+                all = optionsOrPage.all;
+            } else if (typeof optionsOrPage === 'number') {
+                page = optionsOrPage;
+                if (pageSizeArg !== undefined) pageSize = pageSizeArg;
+            }
+
+            const params: any = { page, page_size: pageSize };
+            if (hasProducts !== undefined) {
+                params.has_products = hasProducts;
+            }
+            if (all !== undefined) {
+                params.all = all;
+            }
+
+            const response = await apiClient.get<any>(
                 PRODUCT_ENDPOINTS.LIST_CATEGORIES,
                 {
-                    params: { page, page_size: pageSize },
+                    params,
                 }
             );
+            if (Array.isArray(response.data)) {
+                return {
+                    count: response.data.length,
+                    next: undefined,
+                    previous: undefined,
+                    results: response.data,
+                };
+            }
             return response.data;
         } catch (error: any) {
             throw handleAPIError(error, 'List Categories');

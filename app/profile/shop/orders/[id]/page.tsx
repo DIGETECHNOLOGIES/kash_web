@@ -23,13 +23,15 @@ import {
     User,
     Check,
     XCircle,
-    Store
+    Store,
+    ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { formatImageUrl, formatCurrency } from '@/utils/formatters';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function ShopOrderDetailPage() {
     const { id } = useParams();
@@ -177,13 +179,23 @@ export default function ShopOrderDetailPage() {
                         </div>
 
                         <div className="shrink-0 flex flex-col items-center md:items-end gap-3">
-                            <div className="h-32 w-32 md:h-40 md:w-40 rounded-[3rem] bg-background border-4 border-surface shadow-2xl flex items-center justify-center text-primary group-hover:scale-105 transition-transform duration-500 overflow-hidden ring-1 ring-border">
-                                {order.product_image ? (
-                                    <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover" />
-                                ) : (
-                                    <Package size={64} className="opacity-20" />
-                                )}
-                            </div>
+                            {order.product_id || order.product ? (
+                                <Link href={`/products/${order.product_id || order.product}`} className="h-32 w-32 md:h-40 md:w-40 rounded-[3rem] bg-background border-4 border-surface shadow-2xl flex items-center justify-center text-primary group-hover:scale-105 transition-transform duration-500 overflow-hidden ring-1 ring-border hover:ring-primary/40">
+                                    {order.product_image ? (
+                                        <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover" />
+                                    ) : (
+                                        <Package size={64} className="opacity-20" />
+                                    )}
+                                </Link>
+                            ) : (
+                                <div className="h-32 w-32 md:h-40 md:w-40 rounded-[3rem] bg-background border-4 border-surface shadow-2xl flex items-center justify-center text-primary group-hover:scale-105 transition-transform duration-500 overflow-hidden ring-1 ring-border">
+                                    {order.product_image ? (
+                                        <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover" />
+                                    ) : (
+                                        <Package size={64} className="opacity-20" />
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -204,23 +216,59 @@ export default function ShopOrderDetailPage() {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="flex items-center gap-8 p-6 rounded-[2.5rem] bg-background border border-border/40 group hover:border-primary/30 transition-colors">
-                                    <div className="h-24 w-24 rounded-3xl bg-surface overflow-hidden border border-border/50 shrink-0 shadow-lg">
-                                        <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="font-black text-2xl truncate uppercase tracking-tight italic text-text group-hover:text-primary transition-colors">{order.product_name}</h4>
-                                        <div className="flex flex-wrap items-center gap-6 mt-3">
-                                            <div className="flex flex-col">
-                                                <span className="text-[9px] font-black uppercase text-text-secondary italic">Quantity</span>
-                                                <span className="text-sm font-black italic uppercase">{order.quantity} Items</span>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 rounded-[2.5rem] bg-background border border-border/40 group hover:border-primary/30 transition-colors">
+                                    <div className="flex items-center gap-8 min-w-0">
+                                        {order.product_id || order.product ? (
+                                            <Link href={`/products/${order.product_id || order.product}`} className="h-24 w-24 rounded-3xl bg-surface overflow-hidden border border-border/50 shrink-0 shadow-lg hover:border-primary/50 transition-colors">
+                                                {order.product_image ? (
+                                                    <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                ) : (
+                                                    <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                        <Package size={32} />
+                                                    </div>
+                                                )}
+                                            </Link>
+                                        ) : (
+                                            <div className="h-24 w-24 rounded-3xl bg-surface overflow-hidden border border-border/50 shrink-0 shadow-lg">
+                                                {order.product_image ? (
+                                                    <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                ) : (
+                                                    <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                        <Package size={32} />
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[9px] font-black uppercase text-text-secondary italic">Price per unit</span>
-                                                <span className="text-sm font-black italic uppercase">{formatCurrency(Number(order.total || 0) / (order.quantity || 1))}</span>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            {order.product_id || order.product ? (
+                                                <Link href={`/products/${order.product_id || order.product}`}>
+                                                    <h4 className="font-black text-2xl truncate uppercase tracking-tight italic text-text group-hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
+                                                        {order.product_name}
+                                                        <ExternalLink size={18} className="opacity-50" />
+                                                    </h4>
+                                                </Link>
+                                            ) : (
+                                                <h4 className="font-black text-2xl truncate uppercase tracking-tight italic text-text group-hover:text-primary transition-colors">{order.product_name}</h4>
+                                            )}
+                                            <div className="flex flex-wrap items-center gap-6 mt-3">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-black uppercase text-text-secondary italic">Quantity</span>
+                                                    <span className="text-sm font-black italic uppercase">{order.quantity} Items</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-black uppercase text-text-secondary italic">Price per unit</span>
+                                                    <span className="text-sm font-black italic uppercase">{formatCurrency(Number(order.total || 0) / (order.quantity || 1))}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    {(order.product_id || order.product) && (
+                                        <Link href={`/products/${order.product_id || order.product}`} className="shrink-0 self-start sm:self-center">
+                                            <Button variant="outline" className="rounded-2xl h-12 px-6 font-black uppercase italic text-xs border-primary/40 text-primary hover:bg-primary/10">
+                                                <ExternalLink size={16} className="mr-2" /> View Product
+                                            </Button>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
 

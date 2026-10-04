@@ -31,6 +31,7 @@ import { format } from 'date-fns';
 import { formatImageUrl, formatCurrency } from '@/utils/formatters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export default function ShopOrdersPage() {
     const { t } = useTranslation();
@@ -159,15 +160,27 @@ export default function ShopOrdersPage() {
                                         <div className="absolute top-0 right-0 h-full w-2 bg-primary/20" />
                                         <div className="p-8 md:p-10 flex flex-col md:flex-row gap-10 items-start">
                                             {/* Product Preview */}
-                                            <div className="h-28 w-28 md:h-36 md:w-36 rounded-[2.5rem] bg-background overflow-hidden shrink-0 border border-border shadow-inner ring-4 ring-surface">
-                                                {order.product_image ? (
-                                                    <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover transition-transform group-hover:scale-110" />
-                                                ) : (
-                                                    <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
-                                                        <Package size={48} />
-                                                    </div>
-                                                )}
-                                            </div>
+                                            {order.product_id || order.product ? (
+                                                <Link href={`/products/${order.product_id || order.product}`} className="h-28 w-28 md:h-36 md:w-36 rounded-[2.5rem] bg-background overflow-hidden shrink-0 border border-border shadow-inner ring-4 ring-surface hover:ring-primary/40 transition-all">
+                                                    {order.product_image ? (
+                                                        <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover transition-transform group-hover:scale-110" />
+                                                    ) : (
+                                                        <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                            <Package size={48} />
+                                                        </div>
+                                                    )}
+                                                </Link>
+                                            ) : (
+                                                <div className="h-28 w-28 md:h-36 md:w-36 rounded-[2.5rem] bg-background overflow-hidden shrink-0 border border-border shadow-inner ring-4 ring-surface">
+                                                    {order.product_image ? (
+                                                        <img src={formatImageUrl(order.product_image)} alt={order.product_name} className="h-full w-full object-cover transition-transform group-hover:scale-110" />
+                                                    ) : (
+                                                        <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                            <Package size={48} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
 
                                             {/* Info */}
                                             <div className="flex-1 space-y-6">
@@ -179,7 +192,16 @@ export default function ShopOrdersPage() {
                                                             </span>
                                                             <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest italic">• {format(new Date(order.createdAt), 'MMM dd, h:mm a')}</span>
                                                         </div>
-                                                        <h3 className="text-2xl font-black italic uppercase tracking-tight">{order.product_name}</h3>
+                                                        {order.product_id || order.product ? (
+                                                            <Link href={`/products/${order.product_id || order.product}`}>
+                                                                <h3 className="text-2xl font-black italic uppercase tracking-tight hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
+                                                                    {order.product_name}
+                                                                    <ExternalLink size={18} className="opacity-50" />
+                                                                </h3>
+                                                            </Link>
+                                                        ) : (
+                                                            <h3 className="text-2xl font-black italic uppercase tracking-tight">{order.product_name}</h3>
+                                                        )}
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <div className="h-6 w-6 rounded-lg bg-surface flex items-center justify-center border border-border">
                                                                 <User size={12} className="text-text-secondary" />
@@ -264,6 +286,16 @@ export default function ShopOrdersPage() {
                                                     >
                                                         Report Non-Confirmation <AlertCircle size={18} className="ml-1" />
                                                     </Button>
+                                                )}
+                                                {(order.product_id || order.product) && (
+                                                    <Link href={`/products/${order.product_id || order.product}`}>
+                                                        <Button
+                                                            variant="outline"
+                                                            className="w-full sm:w-auto rounded-2xl h-14 font-black uppercase tracking-tight italic border-primary/40 text-primary hover:bg-primary/10 text-[10px]"
+                                                        >
+                                                            <ExternalLink size={16} className="mr-1.5" /> Product
+                                                        </Button>
+                                                    </Link>
                                                 )}
                                                 <Button
                                                     variant="outline"

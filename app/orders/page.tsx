@@ -8,7 +8,8 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
-import { Package, Truck, CheckCircle2, AlertCircle, MessageCircle, RefreshCw, ChevronRight, Store } from 'lucide-react';
+import { Package, Truck, CheckCircle2, AlertCircle, MessageCircle, RefreshCw, ChevronRight, Store, ExternalLink } from 'lucide-react';
+import { formatImageUrl } from '@/utils/formatters';
 import Link from 'next/link';
 
 export default function OrdersPage() {
@@ -63,13 +64,35 @@ export default function OrdersPage() {
                             <Card key={order.id} className="p-0 overflow-hidden rounded-[2rem] border-border/60 bg-surface shadow-sm">
                                 <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8">
                                     {/* Order Thumbnail */}
-                                    <div className="h-24 w-24 rounded-2xl bg-background border border-border overflow-hidden flex-shrink-0">
-                                        <img
-                                            src={order.product_image || 'https://via.placeholder.com/100'}
-                                            alt={order.product_name}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
+                                    {order.product_id || order.product ? (
+                                        <Link href={`/products/${order.product_id || order.product}`} className="h-24 w-24 rounded-2xl bg-background border border-border overflow-hidden flex-shrink-0 group hover:border-primary/50 transition-colors">
+                                            {order.product_image ? (
+                                                <img
+                                                    src={formatImageUrl(order.product_image)}
+                                                    alt={order.product_name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                    <Package size={32} />
+                                                </div>
+                                            )}
+                                        </Link>
+                                    ) : (
+                                        <div className="h-24 w-24 rounded-2xl bg-background border border-border overflow-hidden flex-shrink-0">
+                                            {order.product_image ? (
+                                                <img
+                                                    src={formatImageUrl(order.product_image)}
+                                                    alt={order.product_name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                    <Package size={32} />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Order Info */}
                                     <div className="flex-1 space-y-2">
@@ -80,7 +103,16 @@ export default function OrdersPage() {
                                             </Badge>
                                             <span className="text-xs font-bold text-text-secondary">#{order.order_code || order.id}</span>
                                         </div>
-                                        <h3 className="text-xl font-black italic tracking-tighter uppercase line-clamp-1">{order.product_name}</h3>
+                                        {order.product_id || order.product ? (
+                                            <Link href={`/products/${order.product_id || order.product}`}>
+                                                <h3 className="text-xl font-black italic tracking-tighter uppercase line-clamp-1 hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
+                                                    {order.product_name}
+                                                    <ExternalLink size={14} className="opacity-50" />
+                                                </h3>
+                                            </Link>
+                                        ) : (
+                                            <h3 className="text-xl font-black italic tracking-tighter uppercase line-clamp-1">{order.product_name}</h3>
+                                        )}
                                         <div className="flex items-center gap-2 text-xs font-bold text-text-secondary">
                                             <Store size={14} className="text-primary" />
                                             {order.shopName}
@@ -104,12 +136,22 @@ export default function OrdersPage() {
                                             <RefreshCw size={14} /> {t('order.requestRefund')}
                                         </Button>
                                     </div>
-                                    <Link href={`/orders/${order.id}`}>
-                                        <Button variant="outline" size="sm" className="h-10 rounded-xl px-6 gap-2 border-border/80">
-                                            {t('order.viewDetails')}
-                                            <ChevronRight size={14} />
-                                        </Button>
-                                    </Link>
+                                    <div className="flex items-center gap-3">
+                                        {(order.product_id || order.product) && (
+                                            <Link href={`/products/${order.product_id || order.product}`}>
+                                                <Button variant="ghost" size="sm" className="h-10 rounded-xl px-4 gap-2 text-xs font-bold text-primary hover:bg-primary/10">
+                                                    <ExternalLink size={14} />
+                                                    View Product
+                                                </Button>
+                                            </Link>
+                                        )}
+                                        <Link href={`/orders/${order.id}`}>
+                                            <Button variant="outline" size="sm" className="h-10 rounded-xl px-6 gap-2 border-border/80">
+                                                {t('order.viewDetails')}
+                                                <ChevronRight size={14} />
+                                            </Button>
+                                        </Link>
+                                    </div>
                                 </div>
                             </Card>
                         ))}

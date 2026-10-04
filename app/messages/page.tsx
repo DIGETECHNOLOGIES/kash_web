@@ -451,6 +451,15 @@ export default function MessagesPage() {
 
     const handleCreateInvoice = async () => {
         if (!selectedProduct || !selectedId || !otherParticipant) return;
+        const isResale = Boolean(selectedProduct.isResale || (selectedProduct as any).is_resale || selectedProduct.originalProductId);
+        const originalPrice = selectedProduct.originalProductPrice;
+        if (isResale && originalPrice != null) {
+            const minAllowedTotal = originalPrice * quantity;
+            if (invoiceTotal < minAllowedTotal) {
+                toast.error(`For resold products, invoice total cannot be less than the original shop price of ${formatCurrency(minAllowedTotal)} (${formatCurrency(originalPrice)} each).`);
+                return;
+            }
+        }
         try {
             setIsSubmittingInvoice(true);
             await orderApi.createInvoice({

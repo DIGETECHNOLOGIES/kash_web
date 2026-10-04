@@ -24,7 +24,7 @@ export default function HomePage() {
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['home', 'categories'],
-    queryFn: () => productApi.listCategories(),
+    queryFn: () => productApi.listCategories({ has_products: true }),
   });
 
   const { data: shopsData, isLoading: isLoadingShops } = useQuery({
@@ -47,7 +47,11 @@ export default function HomePage() {
     getNextPageParam: (lastPage, pages) => (lastPage?.next ? pages.length + 1 : undefined),
   });
 
-  const categories = categoriesData?.results || [];
+  const categories = useMemo(() => {
+    return (categoriesData?.results || []).filter(
+      (c: any) => c.product_count == null || c.product_count > 0
+    );
+  }, [categoriesData?.results]);
   const shops = shopsData?.results || [];
 
   const products = useMemo(() => {

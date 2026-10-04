@@ -48,8 +48,8 @@ export default function AddProductPage() {
     const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
 
     const { data: categories } = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => productApi.listCategories(),
+        queryKey: ['categories', 'all'],
+        queryFn: () => productApi.listCategories({ page_size: 1000, all: true }),
     });
 
     const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({

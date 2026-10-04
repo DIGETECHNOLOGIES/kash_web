@@ -15,7 +15,7 @@ export default function CategoriesPage() {
 
     const { data: categoriesData, isLoading } = useQuery({
         queryKey: ['categories'],
-        queryFn: () => productApi.listCategories(),
+        queryFn: () => productApi.listCategories({ has_products: true }),
     });
 
     // Simple icon mapping based on common category names
@@ -30,6 +30,10 @@ export default function CategoriesPage() {
         if (n.includes('beauty') || n.includes('care')) return Sparkles;
         return ShoppingBag;
     };
+
+    const categories = (categoriesData?.results || []).filter(
+        (c: any) => c.product_count == null || c.product_count > 0
+    );
 
     return (
         <MainLayout>
@@ -48,7 +52,7 @@ export default function CategoriesPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {categoriesData?.results?.map((category: any) => {
+                    {categories.map((category: any) => {
                         const Icon = getIcon(category.name);
                         return (
                             <motion.div
@@ -66,7 +70,9 @@ export default function CategoriesPage() {
                                                 {category.name}
                                             </h3>
                                             <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1">
-                                                Explore Collection
+                                                {category.product_count != null
+                                                    ? `${category.product_count} ${category.product_count === 1 ? 'Product' : 'Products'}`
+                                                    : 'Explore Collection'}
                                             </p>
                                         </div>
                                     </Card>

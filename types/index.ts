@@ -66,6 +66,14 @@ export interface Product {
     location: string;
     category: string;
     allowReselling: boolean;
+    isResale?: boolean;
+    originalProductId?: string | number;
+    originalProductName?: string;
+    originalProductPrice?: number;
+    originalProductImage?: string;
+    originalShopId?: string | number;
+    originalShopName?: string;
+    originalShopImage?: string;
     createdAt: string;
     updatedAt: string;
     average_rating?: number;
@@ -95,6 +103,10 @@ export interface Order {
     resellerId?: string;
     shopId?: string;
     shopName: string;
+    product?: string | number;
+    productId?: string | number;
+    product_id?: string | number;
+    product_slug?: string;
     product_name?: string;
     product_image?: string;
     quantity?: number;
@@ -118,15 +130,31 @@ export interface Order {
     is_complained?: boolean;
     complaint_reason?: string;
     is_invoice?: boolean;
+    is_resale?: boolean;
+    original_shop_id?: string | number;
+    original_shop_name?: string;
+    original_shop_image?: string;
+    original_seller_id?: string;
+    original_seller_name?: string;
+    original_product_id?: string | number;
+    original_product_name?: string;
+    original_product_code?: string;
+    original_product_price?: string | number;
+    resale_delivery_handler?: string;
 }
 
 export interface OrderProduct {
-    productId: string;
-    productName: string;
-    productImage: string;
+    productId?: string | number;
+    product_id?: string | number;
+    id?: string | number;
+    productName?: string;
+    product_name?: string;
+    productImage?: string;
+    product_image?: string;
     quantity: number;
-    pricePerUnit: number;
-    totalPrice: number;
+    pricePerUnit?: number;
+    price?: number;
+    totalPrice?: number;
 }
 
 export interface Category {

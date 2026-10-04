@@ -15,6 +15,9 @@ interface CreatePaymentLinkModalProps {
         id: string | number;
         name: string;
         price?: number | string;
+        isResale?: boolean;
+        originalProductId?: string | number;
+        originalProductPrice?: number;
     };
 }
 
@@ -41,6 +44,13 @@ export const CreatePaymentLinkModal: React.FC<CreatePaymentLinkModalProps> = ({
         const numQty = parseInt(quantity, 10);
         if (isNaN(numQty) || numQty < 1) {
             toast.error('Quantity must be at least 1.');
+            return;
+        }
+
+        const isResale = Boolean(product.isResale || product.originalProductId);
+        const originalPrice = product.originalProductPrice;
+        if (isResale && originalPrice != null && numPrice < originalPrice) {
+            toast.error(`For resold products, payment link price cannot be less than the original shop price of ${formatCurrency(originalPrice)}.`);
             return;
         }
 
@@ -133,6 +143,13 @@ export const CreatePaymentLinkModal: React.FC<CreatePaymentLinkModalProps> = ({
                         <p className="text-xs text-text-secondary">
                             Product: <span className="font-bold text-foreground">{product.name}</span>
                         </p>
+
+                        {Boolean(product.isResale || product.originalProductId) && product.originalProductPrice != null && (
+                            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-text-secondary flex items-center justify-between">
+                                <span>Resold product minimum price:</span>
+                                <span className="font-bold text-primary">{formatCurrency(product.originalProductPrice)}</span>
+                            </div>
+                        )}
 
                         <div>
                             <label className="text-xs font-bold text-text-secondary block mb-1">Agreed Price (XAF)</label>

@@ -20,6 +20,7 @@ import {
     Info,
     Star,
     Link as LinkIcon,
+    ExternalLink,
 } from 'lucide-react';
 import { messagingApi } from '@/services/api/messagingApi';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -111,6 +112,32 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
         } catch (error) {
             console.error('Failed to contact merchant', error);
             toast.error('Could not start conversation');
+        }
+    };
+
+    const isResale = Boolean(product.isResale || product.originalProductId);
+    const originalProductId = product.originalProductId;
+    const originalProductName = product.originalProductName || 'Original Product';
+    const originalProductPrice = product.originalProductPrice;
+    const originalShopId = product.originalShopId;
+    const originalShopName = product.originalShopName || 'Original Supplier';
+
+    const handleChatWithSupplier = async () => {
+        if (!isAuthenticated) {
+            router.push(`/login?redirect=/products/${product.id}`);
+            return;
+        }
+        if (!originalShopId) {
+            toast.error('Supplier details not available.');
+            return;
+        }
+        try {
+            const convo = await messagingApi.startConversation(String(originalShopId), 'BUYER', true);
+            const initialMessage = encodeURIComponent(`[Product #${originalProductName} (${originalProductId})] `);
+            router.push(`/messages?convo=${convo.id}&initialMessage=${initialMessage}`);
+        } catch (error) {
+            console.error('Failed to contact supplier', error);
+            toast.error('Could not start conversation with supplier');
         }
     };
 
@@ -232,6 +259,40 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
                             </div>
                         </div>
                     </div>
+
+                    {isResale && Boolean(originalProductId) && (
+                        <div className="p-4 rounded-2xl bg-surface border border-primary/20 space-y-3 mb-6">
+                            <div className="flex items-center justify-between">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-bold">
+                                    <RefreshCcw size={13} />
+                                    Resold Product
+                                </span>
+                                {originalProductPrice != null && (
+                                    <span className="text-xs text-text-secondary font-medium">
+                                        Supplier price: <strong className="text-foreground font-bold">{formatCurrency(originalProductPrice)}</strong>
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-text-secondary text-xs">Source: <strong className="text-foreground">{originalShopName}</strong></span>
+                                <Link
+                                    href={`/products/${originalProductId}`}
+                                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                                >
+                                    View Original Product <ExternalLink size={12} />
+                                </Link>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs font-bold rounded-xl border-primary text-primary hover:bg-primary/10"
+                                onClick={handleChatWithSupplier}
+                            >
+                                <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                                Chat with Original Supplier
+                            </Button>
+                        </div>
+                    )}
 
                     <div className="space-y-6 mt-auto">
                         <div className="flex items-center gap-4">

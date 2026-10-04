@@ -22,10 +22,13 @@ import {
     MessageCircle,
     AlertCircle,
     Download,
-    MoreVertical
+    MoreVertical,
+    ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
+import { formatImageUrl } from '@/utils/formatters';
+import Link from 'next/link';
 
 export default function OrderDetailPage() {
     const { id } = useParams();
@@ -159,20 +162,64 @@ export default function OrderDetailPage() {
                             </h2>
 
                             <div className="space-y-6">
-                                {(order.products || []).map((item, i) => (
-                                    <div key={i} className="flex items-center gap-6 p-4 rounded-3xl bg-background/50 border border-border/30 group">
-                                        <div className="h-20 w-20 rounded-2xl bg-surface overflow-hidden border border-border/50 shrink-0">
-                                            <img src={item.productImage} alt={item.productName} className="h-full w-full object-cover" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-lg truncate uppercase tracking-tight italic group-hover:text-primary transition-colors">{item.productName}</h4>
-                                            <div className="flex justify-between items-center mt-2">
-                                                <span className="text-xs font-black uppercase text-text-secondary">Quantity: {item.quantity}</span>
-                                                <span className="text-primary font-black italic text-lg">{item.totalPrice.toLocaleString()} F</span>
+                                {(order.products && order.products.length > 0 ? order.products : [{
+                                    productId: order.product_id || order.product,
+                                    productName: order.product_name,
+                                    productImage: order.product_image,
+                                    quantity: order.quantity || 1,
+                                    totalPrice: Number(order.productTotal || order.totalAmount || order.total || 0),
+                                }]).map((item: any, i: number) => {
+                                    const pId = item.productId || item.product_id || item.id || order.product_id || order.product;
+                                    const imgSrc = item.productImage || item.product_image;
+                                    return (
+                                        <div key={i} className="flex items-center gap-6 p-4 rounded-3xl bg-background/50 border border-border/30 group">
+                                            {pId ? (
+                                                <Link href={`/products/${pId}`} className="h-20 w-20 rounded-2xl bg-surface overflow-hidden border border-border/50 shrink-0 hover:border-primary/50 transition-colors">
+                                                    {imgSrc ? (
+                                                        <img src={formatImageUrl(imgSrc)} alt={item.productName || item.product_name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                    ) : (
+                                                        <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                            <Package size={28} />
+                                                        </div>
+                                                    )}
+                                                </Link>
+                                            ) : (
+                                                <div className="h-20 w-20 rounded-2xl bg-surface overflow-hidden border border-border/50 shrink-0">
+                                                    {imgSrc ? (
+                                                        <img src={formatImageUrl(imgSrc)} alt={item.productName || item.product_name} className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <div className="h-full w-full flex items-center justify-center text-primary/30 bg-primary/5">
+                                                            <Package size={28} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                {pId ? (
+                                                    <Link href={`/products/${pId}`}>
+                                                        <h4 className="font-bold text-lg truncate uppercase tracking-tight italic group-hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
+                                                            {item.productName || item.product_name}
+                                                            <ExternalLink size={14} className="opacity-50" />
+                                                        </h4>
+                                                    </Link>
+                                                ) : (
+                                                    <h4 className="font-bold text-lg truncate uppercase tracking-tight italic group-hover:text-primary transition-colors">{item.productName || item.product_name}</h4>
+                                                )}
+                                                <div className="flex justify-between items-center mt-2">
+                                                    <span className="text-xs font-black uppercase text-text-secondary">Quantity: {item.quantity}</span>
+                                                    <span className="text-primary font-black italic text-lg">{Number(item.totalPrice || 0).toLocaleString()} F</span>
+                                                </div>
                                             </div>
+                                            {pId && (
+                                                <Link href={`/products/${pId}`} className="shrink-0">
+                                                    <Button variant="outline" size="sm" className="rounded-xl h-10 px-4 text-xs font-bold text-primary border-primary/30 hover:bg-primary/10">
+                                                        <ExternalLink size={14} className="mr-1.5" /> View
+                                                    </Button>
+                                                </Link>
+                                            )}
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="mt-10 pt-8 border-t border-border/40 space-y-4">
