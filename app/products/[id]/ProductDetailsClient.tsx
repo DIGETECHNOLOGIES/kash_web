@@ -260,7 +260,7 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
                         </div>
                     </div>
 
-                    {isResale && Boolean(originalProductId) && (
+                    {isResale && Boolean(originalProductId) && isOwner && (
                         <div className="p-4 rounded-2xl bg-surface border border-primary/20 space-y-3 mb-6">
                             <div className="flex items-center justify-between">
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-bold">

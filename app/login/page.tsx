@@ -190,7 +190,7 @@ export default function LoginPage() {
                         </span>
                     </div>
 
-                    <GoogleSignInButton text="Continue with Google" />
+                    {/*<GoogleSignInButton text="Continue with Google" />*/}
 
                     <div className="mt-8 pt-6 border-t border-border">
                         <p className="text-center text-[10px] text-text-secondary leading-relaxed uppercase tracking-tighter">

@@ -220,10 +220,10 @@ export default function RegisterPage() {
                         </span>
                     </div>
 
-                    <GoogleSignInButton
+                    {/* <GoogleSignInButton
                         text="Sign up with Google"
                         referralCode={searchParams.get('referral_code') || searchParams.get('ref') || undefined}
-                    />
+                    /> */}
                 </Card>
             </motion.div>
         </div>
