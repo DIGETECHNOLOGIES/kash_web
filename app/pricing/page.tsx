@@ -24,6 +24,7 @@ import {
     Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const FALLBACK_PLANS: WhatsAppPlan[] = [
     {
@@ -128,6 +129,7 @@ export default function PricingPage() {
     const router = useRouter();
     const { isAuthenticated, user } = useAuthStore();
     const [plans, setPlans] = useState<WhatsAppPlan[]>(FALLBACK_PLANS);
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
     const [loading, setLoading] = useState(false);
     const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -198,12 +200,40 @@ export default function PricingPage() {
 
                 {/* Pricing Cards Grid */}
                 <div className="mb-20">
-                    <div className="flex items-center justify-between mb-8 max-w-xl mx-auto text-center">
-                        <div className="w-full bg-surface dark:bg-slate-800/80 p-3 rounded-2xl border border-border flex items-center justify-center gap-3 shadow-sm">
-                            <CreditCard size={18} className="text-primary" />
-                            <span className="text-xs sm:text-sm font-bold text-text">
-                                Billed Monthly in Central African Francs (XAF) • No Contract Required
-                            </span>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 max-w-xl mx-auto">
+                        <div className="bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl flex items-center gap-1 shadow-inner border border-slate-200 dark:border-slate-700">
+                            <button
+                                type="button"
+                                onClick={() => setBillingCycle('monthly')}
+                                className={cn(
+                                    "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all",
+                                    billingCycle === 'monthly'
+                                        ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm"
+                                        : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                                )}
+                            >
+                                Monthly
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setBillingCycle('yearly')}
+                                className={cn(
+                                    "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2",
+                                    billingCycle === 'yearly'
+                                        ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                                        : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                                )}
+                            >
+                                <span>Yearly</span>
+                                <span className={cn(
+                                    "px-2 py-0.5 text-[10px] font-black rounded-full uppercase tracking-wider",
+                                    billingCycle === 'yearly'
+                                        ? "bg-white text-emerald-700"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                                )}>
+                                    Save 20%
+                                </span>
+                            </button>
                         </div>
                     </div>
 
@@ -213,6 +243,7 @@ export default function PricingPage() {
                                 key={plan.slug}
                                 plan={plan}
                                 isCurrentPlan={false}
+                                billingCycle={billingCycle}
                                 onSelectPlan={handleSelectPlan}
                                 loading={loading}
                             />

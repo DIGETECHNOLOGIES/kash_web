@@ -5,6 +5,7 @@ interface Props {
     plan: WhatsAppPlan;
     isCurrentPlan: boolean;
     onSelectPlan: (slug: string) => void;
+    billingCycle?: 'monthly' | 'yearly';
     loading?: boolean;
 }
 
@@ -12,10 +13,16 @@ export const WhatsAppPlanCard: React.FC<Props> = ({
     plan,
     isCurrentPlan,
     onSelectPlan,
+    billingCycle = 'monthly',
     loading = false,
 }) => {
     const isPopular = plan.slug === 'basic';
     const isEnterprise = plan.slug === 'enterprise';
+    const isFree = plan.slug === 'free' || Number(plan.price) === 0;
+
+    const monthlyPrice = Number(plan.price);
+    const yearlyPrice = plan.yearly_price != null ? Number(plan.yearly_price) : Math.round(monthlyPrice * 12 * 0.8);
+    const effectivePrice = billingCycle === 'yearly' && !isFree ? yearlyPrice : monthlyPrice;
 
     const maxAccounts = plan.max_whatsapp_accounts ?? (plan.slug === 'enterprise' ? 10 : plan.slug === 'business' ? 2 : 1);
     const features = [
@@ -90,12 +97,21 @@ export const WhatsAppPlanCard: React.FC<Props> = ({
                 </div>
 
                 <div className="mb-6">
-                    <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
-                        {Number(plan.price).toLocaleString()}
-                    </span>
-                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">
-                        {plan.currency} / month
-                    </span>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
+                            {effectivePrice.toLocaleString()}
+                        </span>
+                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                            {plan.currency} {isFree ? '' : billingCycle === 'yearly' ? '/ year' : '/ month'}
+                        </span>
+                    </div>
+                    {billingCycle === 'yearly' && !isFree && (
+                        <div className="mt-1 flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full">
+                                20% OFF ({(monthlyPrice * 12).toLocaleString()} XAF value)
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <ul className="space-y-3 mb-8">
@@ -130,7 +146,11 @@ export const WhatsAppPlanCard: React.FC<Props> = ({
                         : 'bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900'
                 }`}
             >
-                {isCurrentPlan ? 'Active Plan' : plan.slug === 'free' ? 'Switch to Free' : `Subscribe (${Number(plan.price).toLocaleString()} XAF)`}
+                {isCurrentPlan
+                    ? 'Active Plan'
+                    : isFree
+                    ? 'Switch to Free'
+                    : `Subscribe (${effectivePrice.toLocaleString()} XAF${billingCycle === 'yearly' ? '/yr' : ''})`}
             </button>
         </div>
     );

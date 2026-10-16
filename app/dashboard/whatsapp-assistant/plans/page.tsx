@@ -37,6 +37,9 @@ export default function WhatsAppAssistantPlansPage() {
     const [subscribing, setSubscribing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Billing cycle: monthly or yearly (with 20% discount)
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
     // Direct In-Page Payment Modal State
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<WhatsAppPlan | null>(null);
@@ -96,6 +99,21 @@ export default function WhatsAppAssistantPlansPage() {
         init();
     }, [tokenParam]);
 
+    const handlePhoneChange = (val: string) => {
+        setPhoneNumber(val);
+        const digits = val.replace(/\D/g, '');
+        const clean = digits.startsWith('237') ? digits.slice(3) : digits.startsWith('0') ? digits.slice(1) : digits;
+        if (clean.length >= 2) {
+            const p2 = clean.slice(0, 2);
+            const p3 = clean.slice(0, 3);
+            if (p2 === '69' || ['655', '656', '657', '658', '659'].includes(p3)) {
+                setPaymentMethod('ORANGE');
+            } else if (p2 === '67' || p2 === '68' || ['650', '651', '652', '653', '654'].includes(p3)) {
+                setPaymentMethod('MTN');
+            }
+        }
+    };
+
     const handleSelectPlan = async (slug: string) => {
         setError(null);
 
@@ -122,7 +140,8 @@ export default function WhatsAppAssistantPlansPage() {
         const targetPlan = plans.find(p => p.slug === slug);
         if (targetPlan) {
             setSelectedPlan(targetPlan);
-            setPhoneNumber(user?.number || '');
+            const cleanUserPhone = (user?.number || '').replace(/^\+?237/, '').replace(/^0/, '');
+            handlePhoneChange(cleanUserPhone);
             setPaymentStep('input');
             setPaymentMessage('');
             setTransactionRef('');
@@ -133,11 +152,26 @@ export default function WhatsAppAssistantPlansPage() {
     const handleConfirmPayment = async () => {
         if (!selectedPlan) return;
 
-        const cleanedPhone = phoneNumber.trim().replace(/\s+/g, '');
-        if (!cleanedPhone || cleanedPhone.length < 9) {
-            toast.error('Please enter a valid 9-digit mobile money number.');
+        // Robust Cameroon phone normalization (strictly 9 digits starting with 6)
+        let raw = phoneNumber.trim().replace(/\D/g, '');
+        if (raw.startsWith('237') && raw.length > 9) raw = raw.slice(3);
+        if (raw.startsWith('0') && raw.length === 10) raw = raw.slice(1);
+
+        if (!raw || raw.length !== 9 || !raw.startsWith('6')) {
+            toast.error('Please enter a valid 9-digit Cameroon number starting with 6 (e.g. 6XXXXXXXX).');
             return;
         }
+
+        // Auto-detect and ensure operator match
+        let effectiveMethod = paymentMethod;
+        const p2 = raw.slice(0, 2);
+        const p3 = raw.slice(0, 3);
+        if (p2 === '69' || ['655', '656', '657', '658', '659'].includes(p3)) {
+            effectiveMethod = 'ORANGE';
+        } else if (p2 === '67' || p2 === '68' || ['650', '651', '652', '653', '654'].includes(p3)) {
+            effectiveMethod = 'MTN';
+        }
+        setPaymentMethod(effectiveMethod);
 
         setPaymentStep('initiating');
         setPaymentMessage('Sending payment request to your phone...');
@@ -147,8 +181,9 @@ export default function WhatsAppAssistantPlansPage() {
             const res = await whatsappAssistantApi.createSubscription(
                 selectedPlan.slug,
                 undefined,
-                cleanedPhone,
-                paymentMethod
+                raw,
+                effectiveMethod,
+                billingCycle
             );
 
             if (res.status === 'active') {
@@ -166,12 +201,12 @@ export default function WhatsAppAssistantPlansPage() {
             setTransactionRef(transRef || '');
             setPaymentStep('awaiting_confirmation');
             setPaymentMessage(
-                res.message || `Payment request sent to ${cleanedPhone}. Please enter your Mobile Money PIN on your phone.`
+                res.message || `Payment request sent to +237 ${raw}. Please enter your Mobile Money PIN on your phone.`
             );
 
             if (transRef) {
                 let attempts = 0;
-                const maxAttempts = 35; // ~105 seconds of polling
+                const maxAttempts = 40; // ~120 seconds of polling
 
                 pollIntervalRef.current = setInterval(async () => {
                     attempts += 1;
@@ -205,7 +240,7 @@ export default function WhatsAppAssistantPlansPage() {
             }
         } catch (err: any) {
             setPaymentStep('failed');
-            setPaymentMessage(err?.message || 'Failed to initiate payment. Please try again.');
+            setPaymentMessage(err?.userMessage || err?.message || 'Failed to initiate payment. Please try again.');
         }
     };
 
@@ -246,6 +281,44 @@ export default function WhatsAppAssistantPlansPage() {
                     </div>
                 )}
 
+                {/* Billing Cycle Switcher (Monthly vs Yearly with 20% Discount) */}
+                <div className="flex items-center justify-center">
+                    <div className="bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl flex items-center gap-1 shadow-inner border border-slate-200 dark:border-slate-700">
+                        <button
+                            type="button"
+                            onClick={() => setBillingCycle('monthly')}
+                            className={cn(
+                                "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all",
+                                billingCycle === 'monthly'
+                                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm"
+                                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                            )}
+                        >
+                            Monthly Billing
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setBillingCycle('yearly')}
+                            className={cn(
+                                "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2",
+                                billingCycle === 'yearly'
+                                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                            )}
+                        >
+                            <span>Yearly Billing</span>
+                            <span className={cn(
+                                "px-2 py-0.5 text-[10px] font-black rounded-full uppercase tracking-wider",
+                                billingCycle === 'yearly'
+                                    ? "bg-white text-emerald-700"
+                                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                            )}>
+                                Save 20%
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
                 {/* Plans Grid */}
                 {loading ? (
                     <div className="p-16 text-center text-slate-500 dark:text-slate-400 text-sm font-medium">
@@ -258,6 +331,7 @@ export default function WhatsAppAssistantPlansPage() {
                                 key={p.id}
                                 plan={p}
                                 isCurrentPlan={currentPlanSlug === p.slug}
+                                billingCycle={billingCycle}
                                 onSelectPlan={handleSelectPlan}
                                 loading={subscribing}
                             />
@@ -278,121 +352,139 @@ export default function WhatsAppAssistantPlansPage() {
             >
                 <div className="p-6 space-y-6">
                     {/* Amount & Plan summary badge */}
-                    {selectedPlan && (
-                        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-4 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">Plan Selected</p>
-                                <h4 className="text-base font-black text-slate-900 dark:text-white">{selectedPlan.name} Plan</h4>
+                    {selectedPlan && (() => {
+                        const isPlanFree = selectedPlan.slug === 'free' || Number(selectedPlan.price) === 0;
+                        const monthlyPrice = Number(selectedPlan.price);
+                        const yearlyPrice = selectedPlan.yearly_price != null ? Number(selectedPlan.yearly_price) : Math.round(monthlyPrice * 12 * 0.8);
+                        const targetPrice = billingCycle === 'yearly' && !isPlanFree ? yearlyPrice : monthlyPrice;
+
+                        return (
+                            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-4 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">Plan Selected</p>
+                                    <h4 className="text-base font-black text-slate-900 dark:text-white">
+                                        {selectedPlan.name} Plan ({billingCycle === 'yearly' ? 'Yearly' : 'Monthly'})
+                                    </h4>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                                        {targetPrice.toLocaleString()} XAF
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                        {billingCycle === 'yearly' ? 'per year (20% discount)' : 'per month'}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">
-                                    {Number(selectedPlan.price).toLocaleString()} XAF
-                                </p>
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">per month</p>
-                            </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {/* Step 1: Input details */}
-                    {(paymentStep === 'input' || paymentStep === 'initiating') && (
-                        <div className="space-y-5">
-                            {/* Provider selection */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                                    <CreditCard size={14} className="text-emerald-600" />
-                                    Select Payment Method
-                                </label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div
-                                        onClick={() => setPaymentMethod('MTN')}
-                                        className={cn(
-                                            "p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between",
-                                            paymentMethod === 'MTN'
-                                                ? "border-yellow-400 bg-yellow-400/10 shadow-sm"
-                                                : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-lg bg-yellow-400 text-slate-950 flex items-center justify-center font-black text-xs">
-                                                MTN
-                                            </div>
-                                            <span className="text-xs font-bold text-slate-900 dark:text-white">MoMo</span>
-                                        </div>
-                                        <div className={cn(
-                                            "w-4 h-4 rounded-full border flex items-center justify-center",
-                                            paymentMethod === 'MTN' ? "border-yellow-500 bg-yellow-500 text-white" : "border-slate-300"
-                                        )}>
-                                            {paymentMethod === 'MTN' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                                        </div>
-                                    </div>
+                    {(paymentStep === 'input' || paymentStep === 'initiating') && (() => {
+                        const isPlanFree = selectedPlan ? (selectedPlan.slug === 'free' || Number(selectedPlan.price) === 0) : true;
+                        const monthlyPrice = selectedPlan ? Number(selectedPlan.price) : 0;
+                        const yearlyPrice = selectedPlan ? (selectedPlan.yearly_price != null ? Number(selectedPlan.yearly_price) : Math.round(monthlyPrice * 12 * 0.8)) : 0;
+                        const targetPrice = billingCycle === 'yearly' && !isPlanFree ? yearlyPrice : monthlyPrice;
 
-                                    <div
-                                        onClick={() => setPaymentMethod('ORANGE')}
-                                        className={cn(
-                                            "p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between",
-                                            paymentMethod === 'ORANGE'
-                                                ? "border-orange-500 bg-orange-500/10 shadow-sm"
-                                                : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center font-black text-xs">
-                                                OM
+                        return (
+                            <div className="space-y-5">
+                                {/* Provider selection */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                        <CreditCard size={14} className="text-emerald-600" />
+                                        Select Payment Method
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div
+                                            onClick={() => setPaymentMethod('MTN')}
+                                            className={cn(
+                                                "p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between",
+                                                paymentMethod === 'MTN'
+                                                    ? "border-yellow-400 bg-yellow-400/10 shadow-sm"
+                                                    : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-8 h-8 rounded-lg bg-yellow-400 text-slate-950 flex items-center justify-center font-black text-xs">
+                                                    MTN
+                                                </div>
+                                                <span className="text-xs font-bold text-slate-900 dark:text-white">MoMo</span>
                                             </div>
-                                            <span className="text-xs font-bold text-slate-900 dark:text-white">Orange</span>
+                                            <div className={cn(
+                                                "w-4 h-4 rounded-full border flex items-center justify-center",
+                                                paymentMethod === 'MTN' ? "border-yellow-500 bg-yellow-500 text-white" : "border-slate-300"
+                                            )}>
+                                                {paymentMethod === 'MTN' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                            </div>
                                         </div>
-                                        <div className={cn(
-                                            "w-4 h-4 rounded-full border flex items-center justify-center",
-                                            paymentMethod === 'ORANGE' ? "border-orange-500 bg-orange-500 text-white" : "border-slate-300"
-                                        )}>
-                                            {paymentMethod === 'ORANGE' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+
+                                        <div
+                                            onClick={() => setPaymentMethod('ORANGE')}
+                                            className={cn(
+                                                "p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between",
+                                                paymentMethod === 'ORANGE'
+                                                    ? "border-orange-500 bg-orange-500/10 shadow-sm"
+                                                    : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center font-black text-xs">
+                                                    OM
+                                                </div>
+                                                <span className="text-xs font-bold text-slate-900 dark:text-white">Orange</span>
+                                            </div>
+                                            <div className={cn(
+                                                "w-4 h-4 rounded-full border flex items-center justify-center",
+                                                paymentMethod === 'ORANGE' ? "border-orange-500 bg-orange-500 text-white" : "border-slate-300"
+                                            )}>
+                                                {paymentMethod === 'ORANGE' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Phone number */}
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                                    <Smartphone size={14} className="text-emerald-600" />
-                                    Mobile Money Phone Number
-                                </label>
-                                <div className="relative">
-                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">
-                                        +237
-                                    </span>
-                                    <input
-                                        type="tel"
-                                        value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
-                                        placeholder="6XXXXXXXX"
-                                        disabled={paymentStep === 'initiating'}
-                                        className="w-full pl-14 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all disabled:opacity-50"
-                                    />
+                                {/* Phone number */}
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Smartphone size={14} className="text-emerald-600" />
+                                        Mobile Money Phone Number
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">
+                                            +237
+                                        </span>
+                                        <input
+                                            type="tel"
+                                            value={phoneNumber}
+                                            onChange={(e) => handlePhoneChange(e.target.value)}
+                                            placeholder="6XXXXXXXX"
+                                            disabled={paymentStep === 'initiating'}
+                                            className="w-full pl-14 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all disabled:opacity-50"
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                        A direct USSD prompt will be sent to this number to authorize the payment.
+                                    </p>
                                 </div>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                    A direct USSD prompt will be sent to this number to authorize the payment.
-                                </p>
-                            </div>
 
-                            <Button
-                                className="w-full py-3.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2"
-                                onClick={handleConfirmPayment}
-                                disabled={paymentStep === 'initiating'}
-                            >
-                                {paymentStep === 'initiating' ? (
-                                    <>
-                                        <Loader2 size={18} className="animate-spin" />
-                                        Initiating Payment...
-                                    </>
-                                ) : (
-                                    <>
-                                        Pay {Number(selectedPlan?.price || 0).toLocaleString()} XAF
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    )}
+                                <Button
+                                    className="w-full py-3.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
+                                    onClick={handleConfirmPayment}
+                                    disabled={paymentStep === 'initiating'}
+                                >
+                                    {paymentStep === 'initiating' ? (
+                                        <>
+                                            <Loader2 size={18} className="animate-spin" />
+                                            Initiating Payment...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Pay {targetPrice.toLocaleString()} XAF
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        );
+                    })()}
 
                     {/* Step 2: Awaiting Confirmation (USSD Push sent to phone) */}
                     {paymentStep === 'awaiting_confirmation' && (

@@ -7,6 +7,8 @@ export interface WhatsAppPlan {
     name: string;
     slug: string;
     price: string | number;
+    yearly_price?: string | number;
+    yearly_discount_percentage?: number;
     currency: string;
     monthly_product_limit: number;
     monthly_product_info_limit: number;
@@ -133,7 +135,8 @@ export const whatsappAssistantApi = {
         planSlug: string,
         redirectUrl?: string,
         phoneNumber?: string,
-        provider?: string
+        provider?: string,
+        billingCycle: 'monthly' | 'yearly' = 'monthly'
     ): Promise<{
         status: string;
         direct_pay?: boolean;
@@ -141,11 +144,13 @@ export const whatsappAssistantApi = {
         transaction_reference?: string;
         subscription_id?: number;
         amount?: number;
+        billing_cycle?: string;
         message?: string;
     }> => {
         try {
             const response = await apiClient.post(WHATSAPP_ASSISTANT_ENDPOINTS.SUBSCRIBE, {
                 plan_slug: planSlug,
+                billing_cycle: billingCycle,
                 redirect_url: redirectUrl || (typeof window !== 'undefined' ? `${window.location.origin}/dashboard/whatsapp-assistant/callback` : undefined),
                 phone_number: phoneNumber,
                 provider: provider,
